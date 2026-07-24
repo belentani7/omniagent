@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "omniagent-cli"
+version = "0.1.0"
+description = "One CLI to route AI tasks to the best model automatically"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Pedro Belentani", email = "pedro@belentani.dev" }]
+keywords = ["ai", "cli", "llm", "multi-model", "routing", "cost-optimization"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "click>=8.0",
+    "rich>=13.0",
+    "httpx>=0.25",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21"]
+
+[project.scripts]
+oa = "omniagent.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/pedro-belentani/omniagent"
+Issues = "https://github.com/pedro-belentani/omniagent/issues"
