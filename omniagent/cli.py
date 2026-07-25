@@ -22,23 +22,22 @@ def main():
 
 @main.command()
 @click.argument("prompt")
-@click.option("--model", "-m", help="Force a specific model")
+@click.option("--provider", "-p", help="Force a specific provider")
 @click.option("--verbose", "-v", is_flag=True, help="Show routing decision")
-@click.option("--dry-run", is_flag=True, help="Show which model would be used without executing")
-def run(prompt: str, model: str | None, verbose: bool, dry_run: bool):
-    """Route a prompt to the best AI model."""
+@click.option("--dry-run", is_flag=True, help="Show which provider would be used without executing")
+def run(prompt: str, provider: str | None, verbose: bool, dry_run: bool):
+    """Route a prompt to the best AI provider."""
     config = load_config()
     providers = get_available_providers(config)
 
     if not providers:
         console.print("[red]No API keys found. Set at least one:[/red]")
-        console.print("  export ANTHROPIC_API_KEY=sk-ant-...")
-        console.print("  export GOOGLE_API_KEY=AIza...")
-        console.print("  export OPENAI_API_KEY=sk-...")
+        console.print("  export PROVIDER_A_API_KEY=your-key")
+        console.print("  export PROVIDER_B_API_KEY=your-key")
         raise SystemExit(1)
 
-    if model:
-        provider_name = model
+    if provider:
+        provider_name = provider
         task_type = TaskType.GENERAL
     else:
         task_type = TaskType.classify(prompt)
@@ -51,13 +50,12 @@ def run(prompt: str, model: str | None, verbose: bool, dry_run: bool):
         table.add_row("Prompt", prompt[:80] + ("..." if len(prompt) > 80 else ""))
         table.add_row("Task Type", task_type.value)
         table.add_row("Provider", provider_name)
-        table.add_row("Budget", f"€{config.get('monthly_budget', 'unlimited')}/mo")
+        table.add_row("Budget", f"EUR {config.get('monthly_budget', 'unlimited')}/mo")
         console.print(table)
 
     if dry_run:
         return
 
-    # Execute the actual API call
     from omniagent.providers import execute
 
     with console.status(f"[bold green]Running on {provider_name}..."):
@@ -65,33 +63,31 @@ def run(prompt: str, model: str | None, verbose: bool, dry_run: bool):
 
     console.print(Panel(result, title=f"Response ({provider_name})", border_style="green"))
 
-    # Track cost
     tracker = CostTracker()
     tracker.log(provider_name, task_type.value, prompt, result)
 
 
 @main.command()
-def models():
-    """List available models and providers."""
+def providers_list():
+    """List available providers."""
     config = load_config()
     providers = get_available_providers(config)
 
-    table = Table(title="Available Models")
+    table = Table(title="Available Providers")
     table.add_column("Provider", style="cyan")
     table.add_column("Status", style="green")
     table.add_column("Best For", style="yellow")
 
     all_providers = {
-        "anthropic": "Code review, security, creative writing",
-        "openai": "Data analysis, structured output, general",
-        "google": "Translation, multilingual, quick queries",
-        "deepseek": "Math, reasoning, budget tasks",
-        "groq": "Fastest inference, budget tasks",
-        "xiaomi": "Multilingual, research",
+        "provider_a": "Code review, security, creative writing",
+        "provider_b": "Data analysis, structured output, general",
+        "provider_c": "Translation, multilingual, quick queries",
+        "provider_d": "Math, reasoning, budget tasks",
+        "provider_e": "Fastest inference, budget tasks",
     }
 
     for name, best_for in all_providers.items():
-        status = "✅ Active" if name in providers else "❌ No API key"
+        status = "Active" if name in providers else "No API key"
         table.add_row(name, status, best_for)
 
     console.print(table)
@@ -110,17 +106,17 @@ def cost(last: int, summary: bool):
 
 
 @main.command()
-@click.option("--monthly", type=float, help="Set monthly budget in EUR")
+@click.option("--monthly", type=float, help="Set monthly budget")
 def budget(monthly: float | None):
     """Set or view budget."""
     from omniagent.config import update_config
     if monthly:
         update_config({"monthly_budget": monthly})
-        console.print(f"[green]Monthly budget set to €{monthly}[/green]")
+        console.print(f"[green]Monthly budget set to {monthly}[/green]")
     else:
         config = load_config()
         budget_val = config.get("monthly_budget", "not set")
-        console.print(f"Monthly budget: €{budget_val}")
+        console.print(f"Monthly budget: {budget_val}")
 
 
 @main.command()
@@ -137,7 +133,7 @@ def setup():
     from omniagent.config import update_config
 
     keys = {}
-    for provider in ["anthropic", "openai", "google", "deepseek", "groq", "xiaomi"]:
+    for provider in ["provider_a", "provider_b", "provider_c", "provider_d", "provider_e"]:
         key = click.prompt(f"{provider.upper()} API key", default="", show_default=False)
         if key:
             keys[f"{provider}_api_key"] = key

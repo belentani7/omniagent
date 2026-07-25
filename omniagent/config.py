@@ -10,19 +10,19 @@ CONFIG_FILE = CONFIG_DIR / "config.yaml"
 DEFAULT_CONFIG = {
     "monthly_budget": 50.0,
     "routing": {
-        "code_review": "anthropic",
-        "code_generation": "anthropic",
-        "translation": "google",
-        "math": "deepseek",
-        "quick_query": "google",
-        "creative_writing": "anthropic",
-        "data_analysis": "openai",
-        "research": "anthropic",
+        "code_review": "provider_a",
+        "code_generation": "provider_a",
+        "translation": "provider_c",
+        "math": "provider_d",
+        "quick_query": "provider_e",
+        "creative_writing": "provider_a",
+        "data_analysis": "provider_b",
+        "research": "provider_a",
     },
     "cost_tiers": {
-        "frontier": {"anthropic": 15.0, "openai": 15.0, "google": 10.0},
-        "mid": {"anthropic": 3.0, "openai": 5.0, "google": 2.5, "deepseek": 1.0},
-        "economy": {"google": 0.1, "deepseek": 0.1, "groq": 0.05},
+        "frontier": {"provider_a": 15.0, "provider_b": 15.0, "provider_c": 10.0},
+        "mid": {"provider_a": 3.0, "provider_b": 5.0, "provider_c": 2.5, "provider_d": 1.0},
+        "economy": {"provider_c": 0.1, "provider_d": 0.1, "provider_e": 0.05},
     },
 }
 
@@ -49,12 +49,11 @@ def update_config(updates: dict):
 def get_available_providers(config: dict) -> list[str]:
     """Check which providers have API keys set."""
     env_keys = {
-        "anthropic": "ANTHROPIC_API_KEY",
-        "openai": "OPENAI_API_KEY",
-        "google": "GOOGLE_API_KEY",
-        "deepseek": "DEEPSEEK_API_KEY",
-        "groq": "GROQ_API_KEY",
-        "xiaomi": "XIAOMI_API_KEY",
+        "provider_a": "PROVIDER_A_API_KEY",
+        "provider_b": "PROVIDER_B_API_KEY",
+        "provider_c": "PROVIDER_C_API_KEY",
+        "provider_d": "PROVIDER_D_API_KEY",
+        "provider_e": "PROVIDER_E_API_KEY",
     }
     available = []
     for provider, env_var in env_keys.items():

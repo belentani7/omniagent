@@ -9,7 +9,6 @@ description = "One CLI to route AI tasks to the best model automatically"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-authors = [{ name = "OmniAgent Contributors" }]
 keywords = ["ai", "cli", "llm", "multi-model", "routing", "cost-optimization"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -19,7 +18,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
     "click>=8.0",
@@ -33,7 +31,3 @@ dev = ["pytest>=7.0", "pytest-asyncio>=0.21"]
 
 [project.scripts]
 oa = "omniagent.cli:main"
-
-[project.urls]
-Homepage = "https://github.com/omniagent/omniagent"
-Issues = "https://github.com/omniagent/omniagent/issues"

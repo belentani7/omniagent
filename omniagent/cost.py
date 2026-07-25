@@ -7,14 +7,12 @@ from pathlib import Path
 DATA_DIR = Path.home() / ".local" / "share" / "omniagent"
 LOG_FILE = DATA_DIR / "usage.jsonl"
 
-# Approximate cost per 1K tokens (input + output averaged)
 MODEL_COSTS = {
-    "anthropic": {"input": 0.015, "output": 0.075, "label": "Claude Opus"},
-    "openai": {"input": 0.010, "output": 0.030, "label": "GPT-4.1"},
-    "google": {"input": 0.005, "output": 0.015, "label": "Gemini Pro"},
-    "deepseek": {"input": 0.001, "output": 0.002, "label": "DeepSeek V3"},
-    "groq": {"input": 0.0005, "output": 0.001, "label": "Llama 3.3 70B"},
-    "xiaomi": {"input": 0.002, "output": 0.006, "label": "MiMo V2.5"},
+    "provider_a": {"input": 0.015, "output": 0.075, "label": "Model A-1"},
+    "provider_b": {"input": 0.010, "output": 0.030, "label": "Model B-1"},
+    "provider_c": {"input": 0.005, "output": 0.015, "label": "Model C-1"},
+    "provider_d": {"input": 0.001, "output": 0.002, "label": "Model D-1"},
+    "provider_e": {"input": 0.0005, "output": 0.001, "label": "Model E-1"},
 }
 
 
@@ -28,7 +26,7 @@ class CostTracker:
             "timestamp": datetime.now().isoformat(),
             "provider": provider,
             "task_type": task_type,
-            "prompt_tokens": len(prompt.split()) * 1.3,  # rough estimate
+            "prompt_tokens": len(prompt.split()) * 1.3,
             "response_tokens": len(response.split()) * 1.3,
             "estimated_cost": self._estimate_cost(provider, prompt, response),
         }
@@ -36,14 +34,12 @@ class CostTracker:
             f.write(json.dumps(entry) + "\n")
 
     def _estimate_cost(self, provider: str, prompt: str, response: str) -> float:
-        """Estimate cost of a request."""
         costs = MODEL_COSTS.get(provider, {"input": 0.01, "output": 0.03})
         prompt_tokens = len(prompt.split()) * 1.3
         response_tokens = len(response.split()) * 1.3
         return (prompt_tokens * costs["input"] + response_tokens * costs["output"]) / 1000
 
     def get_entries(self) -> list[dict]:
-        """Read all logged entries."""
         if not LOG_FILE.exists():
             return []
         entries = []
@@ -55,7 +51,6 @@ class CostTracker:
         return entries
 
     def print_last(self, n: int = 10):
-        """Print last N entries."""
         from rich.console import Console
         from rich.table import Table
 
@@ -74,12 +69,11 @@ class CostTracker:
 
         for e in entries:
             time_str = e["timestamp"][:19]
-            table.add_row(time_str, e["provider"], e["task_type"], f"€{e['estimated_cost']:.4f}")
+            table.add_row(time_str, e["provider"], e["task_type"], f"{e['estimated_cost']:.4f}")
 
         console.print(table)
 
     def print_summary(self):
-        """Print cost summary."""
         from rich.console import Console
         from rich.table import Table
 
@@ -110,7 +104,7 @@ class CostTracker:
 
         for provider, cost in sorted(by_provider.items(), key=lambda x: -x[1]):
             count = by_provider_count[provider]
-            table.add_row(provider, str(count), f"€{cost:.4f}")
+            table.add_row(provider, str(count), f"{cost:.4f}")
 
-        table.add_row("[bold]TOTAL[/bold]", str(len(entries)), f"[bold]€{total:.4f}[/bold]")
+        table.add_row("[bold]TOTAL[/bold]", str(len(entries)), f"[bold]{total:.4f}[/bold]")
         console.print(table)
