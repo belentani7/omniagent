@@ -126,7 +126,3 @@ oa config disable deepseek
 ## License
 
 MIT
-
-## Built by
-
-Pedro Belentani — AI Trust & Safety Specialist, Barcelona
