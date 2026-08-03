@@ -19,13 +19,14 @@ class TaskType(Enum):
 # Keywords that signal task type
 SIGNALS = {
     TaskType.CODE_REVIEW: [
-        "review", "audit", "security", "vulnerability", "bug", "refactor",
-        "code smell", "n+1", "injection", "xss", "sql injection", "check code",
-        "analyze code", "what's wrong", "fix this", "debug", "error",
+        "review", "audit", "security", "vulnerability", "vulnerabilities",
+        "bug", "refactor", "code smell", "n+1", "injection", "xss",
+        "sql injection", "check code", "analyze code", "what's wrong",
+        "fix this", "debug", "error",
     ],
     TaskType.CODE_GENERATION: [
-        "write", "create", "build", "implement", "generate", "scaffold",
-        "component", "function", "api", "endpoint", "react", "nextjs",
+        "build", "implement", "generate", "scaffold",
+        "component", "function", "endpoint", "react", "nextjs",
         "python script", "bash script", "dockerfile", "sql query",
     ],
     TaskType.TRANSLATION: [
@@ -37,6 +38,7 @@ SIGNALS = {
         "calculate", "solve", "equation", "formula", "proof", "theorem",
         "statistics", "probability", "derivative", "integral", "matrix",
         "optimization", "algorithm complexity", "big o", "combinatorics",
+        "complexity",
     ],
     TaskType.CREATIVE_WRITING: [
         "write a story", "poem", "creative", "fiction", "narrative",
@@ -73,21 +75,33 @@ def classify(prompt: str) -> TaskType:
     if not scores:
         return TaskType.GENERAL
 
-    return max(scores, key=scores.get)
+    # Tie-break: more specific task types win over generic ones
+    specificity = [
+        TaskType.TRANSLATION,
+        TaskType.MATH,
+        TaskType.CODE_REVIEW,
+        TaskType.CREATIVE_WRITING,
+        TaskType.DATA_ANALYSIS,
+        TaskType.RESEARCH,
+        TaskType.CODE_GENERATION,
+        TaskType.QUICK_QUERY,
+    ]
+    return max(scores, key=lambda t: (scores[t], -specificity.index(t)))
 
 
 def route_task(task_type: TaskType, config: dict, available_providers: list[str]) -> str:
     """Route a task type to the best available provider."""
     routing = config.get("routing", {})
+    default_provider = config.get("default_provider", "groq")
 
-    preferred = routing.get(task_type.value, "anthropic")
+    preferred = routing.get(task_type.value, default_provider)
 
     if preferred in available_providers:
         return preferred
 
-    # Fallback: pick the first available provider
-    fallback_order = ["anthropic", "openai", "google", "deepseek", "groq"]
-    for provider in fallback_order:
+    from omniagent.config import FALLBACK_ORDER
+
+    for provider in FALLBACK_ORDER:
         if provider in available_providers:
             return provider
 

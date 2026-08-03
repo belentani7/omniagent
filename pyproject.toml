@@ -31,3 +31,6 @@ dev = ["pytest>=7.0", "pytest-asyncio>=0.21"]
 
 [project.scripts]
 oa = "omniagent.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["omniagent"]

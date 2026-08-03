@@ -8,28 +8,40 @@ CONFIG_DIR = Path.home() / ".config" / "omniagent"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
 DEFAULT_CONFIG = {
-    "monthly_budget": 50.0,
+    "monthly_budget": 0.0,
+    "default_provider": "groq",
     "routing": {
-        "code_review": "provider_a",
-        "code_generation": "provider_a",
-        "translation": "provider_c",
-        "math": "provider_d",
-        "quick_query": "provider_e",
-        "creative_writing": "provider_a",
-        "data_analysis": "provider_b",
-        "research": "provider_a",
+        "code_review": "deepseek",
+        "code_generation": "groq",
+        "translation": "google",
+        "math": "deepseek",
+        "quick_query": "groq",
+        "creative_writing": "openrouter",
+        "data_analysis": "openrouter",
+        "research": "google",
     },
+    "models": {
+        "groq": "llama-3.3-70b-versatile",
+        "google": "gemini-2.0-flash",
+        "openrouter": "qwen/qwen-2.5-coder-32b-instruct:free",
+        "deepseek": "deepseek-chat",
+        "ollama": "qwen2.5-coder:7b",
+    },
+    "ollama_base_url": "http://localhost:11434",
     "cost_tiers": {
-        "frontier": {"provider_a": 15.0, "provider_b": 15.0, "provider_c": 10.0},
-        "mid": {"provider_a": 3.0, "provider_b": 5.0, "provider_c": 2.5, "provider_d": 1.0},
-        "economy": {"provider_c": 0.1, "provider_d": 0.1, "provider_e": 0.05},
+        "free": {"google": 0.0, "ollama": 0.0},
+        "economy": {"groq": 0.0002, "deepseek": 0.0005},
+        "variable": {"openrouter": 0.001},
     },
 }
+
+# Order providers are tried when a task type's preferred provider is unavailable
+FALLBACK_ORDER = ["groq", "google", "deepseek", "openrouter", "ollama"]
 
 
 def load_config() -> dict:
     """Load config from file, falling back to defaults."""
-    config = DEFAULT_CONFIG.copy()
+    config = _deep_copy(DEFAULT_CONFIG)
     if CONFIG_FILE.exists():
         with open(CONFIG_FILE) as f:
             user_config = yaml.safe_load(f) or {}
@@ -47,13 +59,12 @@ def update_config(updates: dict):
 
 
 def get_available_providers(config: dict) -> list[str]:
-    """Check which providers have API keys set."""
+    """Check which providers have API keys set (or are local)."""
     env_keys = {
-        "provider_a": "PROVIDER_A_API_KEY",
-        "provider_b": "PROVIDER_B_API_KEY",
-        "provider_c": "PROVIDER_C_API_KEY",
-        "provider_d": "PROVIDER_D_API_KEY",
-        "provider_e": "PROVIDER_E_API_KEY",
+        "groq": "GROQ_API_KEY",
+        "google": "GOOGLE_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
+        "deepseek": "DEEPSEEK_API_KEY",
     }
     available = []
     for provider, env_var in env_keys.items():
@@ -61,7 +72,21 @@ def get_available_providers(config: dict) -> list[str]:
             available.append(provider)
         elif config.get(f"{provider}_api_key"):
             available.append(provider)
+    # Ollama is always available if reachable (local)
+    base = config.get("ollama_base_url", "http://localhost:11434")
+    try:
+        import httpx
+        r = httpx.get(f"{base}/api/tags", timeout=2)
+        if r.status_code == 200:
+            available.append("ollama")
+    except Exception:
+        pass
     return available
+
+
+def _deep_copy(d: dict) -> dict:
+    import copy
+    return copy.deepcopy(d)
 
 
 def _deep_merge(base: dict, override: dict):

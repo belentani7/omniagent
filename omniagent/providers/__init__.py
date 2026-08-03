@@ -1,33 +1,71 @@
-"""Provider implementations for OmniAgent."""
+"""Provider implementations for OmniAgent — real, working providers."""
 
 import os
 import httpx
+
+PROVIDER_INFO = {
+    "groq": {
+        "label": "Groq",
+        "best_for": "Code gen, quick queries, budget",
+        "model": "llama-3.3-70b-versatile",
+        "cost_tier": "economy",
+    },
+    "google": {
+        "label": "Google",
+        "best_for": "Research, general, translation",
+        "model": "gemini-2.0-flash",
+        "cost_tier": "free",
+    },
+    "openrouter": {
+        "label": "OpenRouter",
+        "best_for": "Any model, quality/cost balance",
+        "model": "qwen/qwen-2.5-coder-32b-instruct:free",
+        "cost_tier": "variable",
+    },
+    "deepseek": {
+        "label": "DeepSeek",
+        "best_for": "Code review, math, reasoning",
+        "model": "deepseek-chat",
+        "cost_tier": "economy",
+    },
+    "ollama": {
+        "label": "Ollama (local)",
+        "best_for": "Offline, privacy",
+        "model": "qwen2.5-coder:7b",
+        "cost_tier": "free-local",
+    },
+}
+
+ENV_KEYS = {
+    "groq": "GROQ_API_KEY",
+    "google": "GOOGLE_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "deepseek": "DEEPSEEK_API_KEY",
+}
 
 
 def execute(provider: str, prompt: str, config: dict) -> str:
     """Execute a prompt on the specified provider."""
     handlers = {
-        "provider_a": _call_provider_a,
-        "provider_b": _call_provider_b,
-        "provider_c": _call_provider_c,
-        "provider_d": _call_provider_d,
-        "provider_e": _call_provider_e,
+        "groq": _call_groq,
+        "google": _call_google,
+        "openrouter": _call_openrouter,
+        "deepseek": _call_deepseek,
+        "ollama": _call_ollama,
     }
     handler = handlers.get(provider)
     if not handler:
         return f"[Error: Unknown provider '{provider}']"
-    return handler(prompt, config)
+    try:
+        return handler(prompt, config)
+    except httpx.HTTPStatusError as e:
+        return f"[Error: {provider} HTTP {e.response.status_code}: {e.response.text[:200]}]"
+    except httpx.RequestError as e:
+        return f"[Error: {provider} connection failed: {e}]"
 
 
 def _get_key(provider: str, config: dict) -> str | None:
-    env_map = {
-        "provider_a": "PROVIDER_A_API_KEY",
-        "provider_b": "PROVIDER_B_API_KEY",
-        "provider_c": "PROVIDER_C_API_KEY",
-        "provider_d": "PROVIDER_D_API_KEY",
-        "provider_e": "PROVIDER_E_API_KEY",
-    }
-    env_var = env_map.get(provider)
+    env_var = ENV_KEYS.get(provider)
     if env_var:
         key = os.environ.get(env_var)
         if key:
@@ -35,41 +73,29 @@ def _get_key(provider: str, config: dict) -> str | None:
     return config.get(f"{provider}_api_key")
 
 
-def _call_provider_a(prompt: str, config: dict) -> str:
-    key = _get_key("provider_a", config)
+def _call_groq(prompt: str, config: dict) -> str:
+    key = _get_key("groq", config)
     if not key:
-        return "[Error: No PROVIDER_A_API_KEY set]"
+        return "[Error: No GROQ_API_KEY set]"
+    model = config.get("models", {}).get("groq", PROVIDER_INFO["groq"]["model"])
     resp = httpx.post(
-        "https://api.provider-a.com/v1/messages",
-        headers={"x-api-key": key, "content-type": "application/json"},
-        json={"model": "model-a-1", "max_tokens": 4096, "messages": [{"role": "user", "content": prompt}]},
-        timeout=120,
-    )
-    resp.raise_for_status()
-    return resp.json()["content"][0]["text"]
-
-
-def _call_provider_b(prompt: str, config: dict) -> str:
-    key = _get_key("provider_b", config)
-    if not key:
-        return "[Error: No PROVIDER_B_API_KEY set]"
-    resp = httpx.post(
-        "https://api.provider-b.com/v1/chat/completions",
+        "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-        json={"model": "model-b-1", "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096},
+        json={"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096},
         timeout=120,
     )
     resp.raise_for_status()
     return resp.json()["choices"][0]["message"]["content"]
 
 
-def _call_provider_c(prompt: str, config: dict) -> str:
-    key = _get_key("provider_c", config)
+def _call_google(prompt: str, config: dict) -> str:
+    key = _get_key("google", config)
     if not key:
-        return "[Error: No PROVIDER_C_API_KEY set]"
+        return "[Error: No GOOGLE_API_KEY set]"
+    model = config.get("models", {}).get("google", PROVIDER_INFO["google"]["model"])
     resp = httpx.post(
-        "https://api.provider-c.com/v1/generate",
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}",
+        headers={"Content-Type": "application/json"},
         json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"maxOutputTokens": 4096}},
         timeout=120,
     )
@@ -77,29 +103,44 @@ def _call_provider_c(prompt: str, config: dict) -> str:
     return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
 
 
-def _call_provider_d(prompt: str, config: dict) -> str:
-    key = _get_key("provider_d", config)
+def _call_openrouter(prompt: str, config: dict) -> str:
+    key = _get_key("openrouter", config)
     if not key:
-        return "[Error: No PROVIDER_D_API_KEY set]"
+        return "[Error: No OPENROUTER_API_KEY set]"
+    model = config.get("models", {}).get("openrouter", PROVIDER_INFO["openrouter"]["model"])
     resp = httpx.post(
-        "https://api.provider-d.com/chat/completions",
+        "https://openrouter.ai/api/v1/chat/completions",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-        json={"model": "model-d-1", "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096},
+        json={"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096},
         timeout=120,
     )
     resp.raise_for_status()
     return resp.json()["choices"][0]["message"]["content"]
 
 
-def _call_provider_e(prompt: str, config: dict) -> str:
-    key = _get_key("provider_e", config)
+def _call_deepseek(prompt: str, config: dict) -> str:
+    key = _get_key("deepseek", config)
     if not key:
-        return "[Error: No PROVIDER_E_API_KEY set]"
+        return "[Error: No DEEPSEEK_API_KEY set]"
+    model = config.get("models", {}).get("deepseek", PROVIDER_INFO["deepseek"]["model"])
     resp = httpx.post(
-        "https://api.provider-e.com/v1/chat/completions",
+        "https://api.deepseek.com/chat/completions",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-        json={"model": "model-e-1", "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096},
+        json={"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096},
         timeout=120,
     )
     resp.raise_for_status()
     return resp.json()["choices"][0]["message"]["content"]
+
+
+def _call_ollama(prompt: str, config: dict) -> str:
+    base_url = config.get("ollama_base_url", os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434"))
+    model = config.get("models", {}).get("ollama", PROVIDER_INFO["ollama"]["model"])
+    resp = httpx.post(
+        f"{base_url}/api/chat",
+        headers={"Content-Type": "application/json"},
+        json={"model": model, "messages": [{"role": "user", "content": prompt}], "stream": False},
+        timeout=300,
+    )
+    resp.raise_for_status()
+    return resp.json()["message"]["content"]

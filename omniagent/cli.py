@@ -7,7 +7,7 @@ from rich.panel import Panel
 
 from omniagent import __version__
 from omniagent.config import load_config, get_available_providers
-from omniagent.router import route_task, TaskType
+from omniagent.router import route_task, TaskType, classify
 from omniagent.cost import CostTracker
 
 console = Console()
@@ -32,15 +32,17 @@ def run(prompt: str, provider: str | None, verbose: bool, dry_run: bool):
 
     if not providers:
         console.print("[red]No API keys found. Set at least one:[/red]")
-        console.print("  export PROVIDER_A_API_KEY=your-key")
-        console.print("  export PROVIDER_B_API_KEY=your-key")
+        for name, env in [("groq", "GROQ_API_KEY"), ("google", "GOOGLE_API_KEY"),
+                          ("openrouter", "OPENROUTER_API_KEY"), ("deepseek", "DEEPSEEK_API_KEY")]:
+            console.print(f"  setx {env} your-key")
+        console.print("  Or run: omniagent setup")
         raise SystemExit(1)
 
     if provider:
         provider_name = provider
         task_type = TaskType.GENERAL
     else:
-        task_type = TaskType.classify(prompt)
+        task_type = classify(prompt)
         provider_name = route_task(task_type, config, providers)
 
     if dry_run or verbose:
@@ -79,11 +81,11 @@ def providers_list():
     table.add_column("Best For", style="yellow")
 
     all_providers = {
-        "provider_a": "Code review, security, creative writing",
-        "provider_b": "Data analysis, structured output, general",
-        "provider_c": "Translation, multilingual, quick queries",
-        "provider_d": "Math, reasoning, budget tasks",
-        "provider_e": "Fastest inference, budget tasks",
+        "groq": "Code gen, quick queries, budget",
+        "google": "Research, translation, general",
+        "openrouter": "Any model, quality/cost balance",
+        "deepseek": "Code review, math, reasoning",
+        "ollama": "Local, offline, privacy",
     }
 
     for name, best_for in all_providers.items():
@@ -133,8 +135,8 @@ def setup():
     from omniagent.config import update_config
 
     keys = {}
-    for provider in ["provider_a", "provider_b", "provider_c", "provider_d", "provider_e"]:
-        key = click.prompt(f"{provider.upper()} API key", default="", show_default=False)
+    for provider in ["groq", "google", "openrouter", "deepseek", "ollama"]:
+        key = click.prompt(f"{provider.upper()} API key (dejar vacio si no)", default="", show_default=False)
         if key:
             keys[f"{provider}_api_key"] = key
 
