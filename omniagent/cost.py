@@ -8,11 +8,11 @@ DATA_DIR = Path.home() / ".local" / "share" / "omniagent"
 LOG_FILE = DATA_DIR / "usage.jsonl"
 
 MODEL_COSTS = {
-    "provider_a": {"input": 0.015, "output": 0.075, "label": "Model A-1"},
-    "provider_b": {"input": 0.010, "output": 0.030, "label": "Model B-1"},
-    "provider_c": {"input": 0.005, "output": 0.015, "label": "Model C-1"},
-    "provider_d": {"input": 0.001, "output": 0.002, "label": "Model D-1"},
-    "provider_e": {"input": 0.0005, "output": 0.001, "label": "Model E-1"},
+    "groq": {"input": 0.00059, "output": 0.00079, "label": "llama-3.3-70b"},
+    "google": {"input": 0.00010, "output": 0.00040, "label": "gemini-2.0-flash"},
+    "openrouter": {"input": 0.0, "output": 0.0, "label": "qwen-2.5-coder (free)"},
+    "deepseek": {"input": 0.00014, "output": 0.00028, "label": "deepseek-chat"},
+    "ollama": {"input": 0.0, "output": 0.0, "label": "qwen2.5-coder (local)"},
 }
 
 

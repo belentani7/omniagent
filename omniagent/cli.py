@@ -135,7 +135,7 @@ def setup():
     from omniagent.config import update_config
 
     keys = {}
-    for provider in ["groq", "google", "openrouter", "deepseek", "ollama"]:
+    for provider in ["groq", "google", "openrouter", "deepseek"]:
         key = click.prompt(f"{provider.upper()} API key (dejar vacio si no)", default="", show_default=False)
         if key:
             keys[f"{provider}_api_key"] = key
