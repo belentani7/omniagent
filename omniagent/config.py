@@ -54,8 +54,10 @@ def update_config(updates: dict):
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     config = load_config()
     _deep_merge(config, updates)
-    with open(CONFIG_FILE, "w") as f:
-        yaml.dump(config, f, default_flow_style=False)
+    CONFIG_FILE.touch(mode=0o600, exist_ok=True)
+    CONFIG_FILE.chmod(0o600)
+    with CONFIG_FILE.open("w", encoding="utf-8") as f:
+        yaml.safe_dump(config, f, default_flow_style=False, sort_keys=False)
 
 
 def get_available_providers(config: dict) -> list[str]:

@@ -112,7 +112,7 @@ def cost(last: int, summary: bool):
 def budget(monthly: float | None):
     """Set or view budget."""
     from omniagent.config import update_config
-    if monthly:
+    if monthly is not None:
         update_config({"monthly_budget": monthly})
         console.print(f"[green]Monthly budget set to {monthly}[/green]")
     else:
