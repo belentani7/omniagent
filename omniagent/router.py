@@ -106,3 +106,31 @@ def route_task(task_type: TaskType, config: dict, available_providers: list[str]
             return provider
 
     return available_providers[0] if available_providers else "none"
+
+
+def route_with_economics(
+    task_type: TaskType,
+    config: dict,
+    candidates: list[dict],
+    *,
+    budget: float | None = None,
+    objective: str = "balanced",
+) -> str:
+    """Route using normalized cost/latency candidates when economics is enabled.
+
+    Each candidate must contain ``provider`` and may contain ``model``,
+    ``estimated_cost``, ``estimated_latency_ms`` and ``available``. The
+    historical ``route_task`` remains the compatibility path for callers that
+    only provide provider names.
+    """
+    from omniagent.economics import ComputeCandidate, ComputeEconomicsEngine
+
+    normalized = [ComputeCandidate(**candidate) for candidate in candidates]
+    preferred = config.get("routing", {}).get(task_type.value)
+    selected = ComputeEconomicsEngine().choose(
+        normalized,
+        budget=budget,
+        preferred_provider=preferred,
+        objective=objective,
+    )
+    return selected.provider
