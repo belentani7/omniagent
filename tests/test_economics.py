@@ -59,3 +59,15 @@ def test_gpu_comparisons_adapt_to_neutral_contract():
     assert candidate.provider == "gpu"
     assert candidate.model == "a100"
     assert candidate.estimated_latency_ms == 2500
+
+
+def test_balanced_objective_normalizes_cost_and_latency_scales():
+    candidates = [
+        ComputeCandidate("cheap", estimated_cost=0.01, estimated_latency_ms=1000),
+        ComputeCandidate("fast", estimated_cost=0.10, estimated_latency_ms=10),
+        ComputeCandidate("balanced", estimated_cost=0.02, estimated_latency_ms=100),
+    ]
+
+    selected = ComputeEconomicsEngine().choose(candidates, objective="balanced")
+
+    assert selected.provider == "balanced"

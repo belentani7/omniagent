@@ -52,13 +52,23 @@ class ComputeEconomicsEngine:
         if not options:
             raise ValueError("no available compute candidates")
 
+        cost_values = [candidate.estimated_cost for candidate in options]
+        latency_values = [candidate.estimated_latency_ms for candidate in options]
+        cost_span = max(cost_values) - min(cost_values)
+        latency_span = max(latency_values) - min(latency_values)
+
+        def normalized(value: float, minimum: float, span: float) -> float:
+            return 0.0 if span == 0 else (value - minimum) / span
+
         def key(candidate: ComputeCandidate) -> tuple[float, float, int]:
             if objective == "cost":
                 primary, secondary = candidate.estimated_cost, candidate.estimated_latency_ms
             elif objective == "latency":
                 primary, secondary = candidate.estimated_latency_ms, candidate.estimated_cost
             elif objective == "balanced":
-                primary = candidate.estimated_cost * 0.7 + candidate.estimated_latency_ms * 0.3
+                normalized_cost = normalized(candidate.estimated_cost, min(cost_values), cost_span)
+                normalized_latency = normalized(candidate.estimated_latency_ms, min(latency_values), latency_span)
+                primary = normalized_cost * 0.7 + normalized_latency * 0.3
                 secondary = candidate.estimated_cost
             else:
                 raise ValueError(f"unsupported objective: {objective}")
