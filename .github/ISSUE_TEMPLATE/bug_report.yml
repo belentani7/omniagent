@@ -1,9 +1,33 @@
-name: Bug Report
+name: Bug report
+description: Report a reproducible defect in OmniAgent.
 title: "[BUG] "
-labels: ["bug"]
+labels:
+  - bug
 body:
-  - type: textarea
-    id: desc
+  - type: markdown
     attributes:
-      label: Description
+      value: Before sharing, remove API keys, prompts containing personal data, and provider response bodies.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: State the observed behavior and what you expected instead.
+      placeholder: A concise description of the defect.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Include the command and a minimal redacted prompt/config.
+      placeholder: Steps to reproduce without credentials.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS and Python version.
+      placeholder: e.g. Ubuntu 24.04, Python 3.12
+    validations:
       required: true

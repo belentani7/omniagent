@@ -1,10 +1,13 @@
 """Task classification and routing engine."""
 
+from __future__ import annotations
+
 import re
+import unicodedata
 from enum import Enum
 
 
-class TaskType(Enum):
+class TaskType(str, Enum):
     CODE_REVIEW = "code_review"
     CODE_GENERATION = "code_generation"
     TRANSLATION = "translation"
@@ -16,66 +19,234 @@ class TaskType(Enum):
     GENERAL = "general"
 
 
-# Keywords that signal task type
+# Lightweight, editable lexical rules; this is not a learned classifier.
 SIGNALS = {
     TaskType.CODE_REVIEW: [
-        "review", "audit", "security", "vulnerability", "vulnerabilities",
-        "bug", "refactor", "code smell", "n+1", "injection", "xss",
-        "sql injection", "check code", "analyze code", "what's wrong",
-        "fix this", "debug", "error",
+        "review",
+        "audit",
+        "security",
+        "vulnerability",
+        "vulnerabilities",
+        "bug",
+        "refactor",
+        "code smell",
+        "n+1",
+        "injection",
+        "xss",
+        "sql injection",
+        "check code",
+        "analyze code",
+        "what's wrong",
+        "fix this",
+        "debug",
+        "error",
+        "revisar",
+        "revision de codigo",
+        "auditar",
+        "seguridad",
+        "vulnerabilidad",
+        "depurar",
+        "corregir codigo",
+        "arreglar este codigo",
+        "revisar el codigo",
     ],
     TaskType.CODE_GENERATION: [
-        "build", "implement", "generate", "scaffold",
-        "component", "function", "endpoint", "react", "nextjs",
-        "python script", "bash script", "dockerfile", "sql query",
+        "build",
+        "implement",
+        "generate",
+        "scaffold",
+        "write code",
+        "write a function",
+        "write a script",
+        "component",
+        "function",
+        "endpoint",
+        "react",
+        "nextjs",
+        "python script",
+        "bash script",
+        "dockerfile",
+        "sql query",
+        "crear",
+        "implementar",
+        "generar",
+        "componente",
+        "funcion",
+        "script de python",
+        "endpoint rest",
     ],
     TaskType.TRANSLATION: [
-        "translate", "traducir", "traduire", "übersetzen", "翻译",
-        "to spanish", "to portuguese", "to english", "to french",
-        "to catalan", "from spanish", "from portuguese", "multilingual",
+        "translate",
+        "traducir",
+        "traduce",
+        "traduire",
+        "traduir",
+        "tradueix",
+        "übersetzen",
+        "翻译",
+        "to spanish",
+        "to portuguese",
+        "to english",
+        "to french",
+        "to catalan",
+        "from spanish",
+        "from portuguese",
+        "multilingual",
+        "al espanol",
+        "al portugues",
+        "al ingles",
+        "al frances",
+        "al catalan",
     ],
     TaskType.MATH: [
-        "calculate", "solve", "equation", "formula", "proof", "theorem",
-        "statistics", "probability", "derivative", "integral", "matrix",
-        "optimization", "algorithm complexity", "big o", "combinatorics",
+        "calculate",
+        "solve",
+        "equation",
+        "formula",
+        "proof",
+        "theorem",
+        "statistics",
+        "probability",
+        "derivative",
+        "integral",
+        "matrix",
+        "optimization",
+        "algorithm complexity",
+        "big o",
+        "combinatorics",
         "complexity",
+        "calcular",
+        "resolver",
+        "ecuacion",
+        "demostracion",
+        "probabilidad",
+        "derivada",
+        "integral",
+        "matriz",
+        "optimizar",
     ],
     TaskType.CREATIVE_WRITING: [
-        "write a story", "poem", "creative", "fiction", "narrative",
-        "screenplay", "dialogue", "brainstorm", "ideate", "headline",
-        "copywriting", "slogan", "brand voice", "tone",
+        "write a story",
+        "poem",
+        "creative",
+        "fiction",
+        "narrative",
+        "screenplay",
+        "dialogue",
+        "brainstorm",
+        "ideate",
+        "headline",
+        "copywriting",
+        "slogan",
+        "brand voice",
+        "tone",
+        "escribe un cuento",
+        "poema",
+        "ficcion",
+        "narrativa",
+        "guion",
+        "lluvia de ideas",
+        "redacta una historia",
+        "eslogan",
     ],
     TaskType.DATA_ANALYSIS: [
-        "analyze data", "csv", "dataset", "statistics", "correlation",
-        "regression", "chart", "graph", "visualization", "pandas",
-        "spreadsheet", "excel", "dashboard", "metrics", "kpi",
+        "analyze data",
+        "csv",
+        "dataset",
+        "statistics",
+        "correlation",
+        "regression",
+        "chart",
+        "graph",
+        "visualization",
+        "pandas",
+        "spreadsheet",
+        "excel",
+        "dashboard",
+        "metrics",
+        "kpi",
+        "analiza datos",
+        "conjunto de datos",
+        "correlacion",
+        "regresion",
+        "grafico",
+        "hoja de calculo",
+        "metricas",
+        "indicadores",
     ],
     TaskType.RESEARCH: [
-        "research", "investigate", "compare", "analyze", "survey",
-        "literature review", "what are the best", " pros and cons",
-        "market analysis", "competitor", "benchmark", "state of the art",
+        "research",
+        "investigate",
+        "compare",
+        "analyze",
+        "survey",
+        "literature review",
+        "what are the best",
+        "pros and cons",
+        "market analysis",
+        "competitor",
+        "benchmark",
+        "state of the art",
+        "investiga",
+        "compara",
+        "revision bibliografica",
+        "cuales son los mejores",
+        "ventajas y desventajas",
+        "analisis de mercado",
+        "competidores",
+        "estado del arte",
     ],
     TaskType.QUICK_QUERY: [
-        "what is", "how do", "when was", "who is", "define",
-        "explain simply", "tldr", "quick", "brief", "in one sentence",
+        "what is",
+        "how do",
+        "when was",
+        "who is",
+        "define",
+        "explain simply",
+        "tldr",
+        "quick",
+        "brief",
+        "in one sentence",
+        "que es",
+        "como funciona",
+        "cuando fue",
+        "quien es",
+        "define",
+        "explica brevemente",
+        "resumen rapido",
+        "en una frase",
     ],
 }
 
 
+def _normalize(text: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", text.casefold().replace("’", "'"))
+    return "".join(char for char in decomposed if not unicodedata.combining(char))
+
+
+def _contains_signal(prompt: str, signal: str) -> bool:
+    words = _normalize(signal).split()
+    if not words:
+        return False
+    phrase = r"\s+".join(re.escape(word) for word in words)
+    return re.search(rf"(?<!\w){phrase}(?!\w)", prompt) is not None
+
+
 def classify(prompt: str) -> TaskType:
-    """Classify a prompt into a task type based on keyword signals."""
-    prompt_lower = prompt.lower()
+    """Classify a prompt using token-boundary lexical rules in English, Spanish, and Catalan."""
+    if not isinstance(prompt, str):
+        raise TypeError("prompt must be a string")
+    prompt_normalized = _normalize(prompt)
 
-    scores = {}
-    for task_type, keywords in SIGNALS.items():
-        score = sum(1 for kw in keywords if kw in prompt_lower)
-        if score > 0:
-            scores[task_type] = score
-
+    scores = {
+        task_type: sum(_contains_signal(prompt_normalized, signal) for signal in keywords)
+        for task_type, keywords in SIGNALS.items()
+    }
+    scores = {task_type: score for task_type, score in scores.items() if score > 0}
     if not scores:
         return TaskType.GENERAL
 
-    # Tie-break: more specific task types win over generic ones
+    # Prefer more specific classes when lexical signal counts tie.
     specificity = [
         TaskType.TRANSLATION,
         TaskType.MATH,
@@ -86,14 +257,13 @@ def classify(prompt: str) -> TaskType:
         TaskType.CODE_GENERATION,
         TaskType.QUICK_QUERY,
     ]
-    return max(scores, key=lambda t: (scores[t], -specificity.index(t)))
+    return max(scores, key=lambda task_type: (scores[task_type], -specificity.index(task_type)))
 
 
 def route_task(task_type: TaskType, config: dict, available_providers: list[str]) -> str:
-    """Route a task type to the best available provider."""
+    """Route a task type to its preferred available provider, then use fallbacks."""
     routing = config.get("routing", {})
     default_provider = config.get("default_provider", "groq")
-
     preferred = routing.get(task_type.value, default_provider)
 
     if preferred in available_providers:
@@ -104,7 +274,6 @@ def route_task(task_type: TaskType, config: dict, available_providers: list[str]
     for provider in FALLBACK_ORDER:
         if provider in available_providers:
             return provider
-
     return available_providers[0] if available_providers else "none"
 
 
@@ -121,7 +290,8 @@ def route_with_economics(
     Each candidate must contain ``provider`` and may contain ``model``,
     ``estimated_cost``, ``estimated_latency_ms`` and ``available``. The
     historical ``route_task`` remains the compatibility path for callers that
-    only provide provider names.
+    only provide provider names. A requested budget is enforced strictly: no
+    over-budget candidate is returned.
     """
     from omniagent.economics import ComputeCandidate, ComputeEconomicsEngine
 

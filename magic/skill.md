@@ -1,34 +1,37 @@
 ---
 name: belentani-magic
-description: Add the BELENTANI magic layer to this repo - immersive shaders, procedural sound, lore and virtual AI instructions. Use when the user wants to make the repo feel alive / magical, add WebGL shaders, sound effects, lore, or virtual AI instructions. Signature: belentani.eu / noiacore.com.
+description: Create or refine an optional BELENTANI creative layer—visual atmosphere, WebGL, procedural audio, lore, or a local agent plugin—when the user explicitly asks for it. Keep each effect purposeful and the underlying product fully functional.
 ---
 
 # BELENTANI Magic Skill
 
-Use this skill to give a repository the BELENTANI magic treatment.
+Use this skill only when a creative layer is requested or clearly fits the product. It must complement working software, not disguise missing functionality.
 
-## Deliverables
+## Choose deliverables by purpose
 
-Add a `magic/` folder (unless present) containing:
+The `magic/` directory may include any relevant subset of:
 
-1. `shader.html` - self-contained WebGL animated shader (immersive background).
-2. `sfx.html` - procedural sound effect forge (WebAudio, no binary files).
-3. `immersive.html` - combined experience: shader + lore + sound.
-4. `lore.md` - ecosystem world-building and the Three Rules.
-5. `ai-instructions.md` - virtual AI agent briefing.
-6. `skill.md` - this skill.
-7. `plugin.js` - opencode plugin exposing an `/immersive` command.
-8. `README.md` - kit overview.
+- `shader.html` — a self-contained WebGL study.
+- `sfx.html` — procedural sound via WebAudio.
+- `immersive.html` — a coherent visual/audio experience.
+- `lore.md` — world-building for a creative project.
+- `ai-instructions.md` — accurate, project-specific agent guidance.
+- `plugin.js` — a plugin only when the host runtime supports it.
+- `README.md` — explain which files are optional and how to open them.
+
+Do not generate every item by default. Do not require 3D, animation, audio, or lore for a business product.
 
 ## Rules
 
-- Never modify or replace the existing frontend. Add the layer on top.
-- Always include the signature `belentani.eu / noiacore.com`.
-- Keep files dependency-free (WebGL + WebAudio only).
-- Tailor `lore.md` and `ai-instructions.md` to the repo's name and axis
-  (PLATFORM / AI_TOOL / SITE / ARCHIVE).
+- Preserve the real product workflow and test it after visual changes.
+- Never present a static mock, unimplemented control, or invented metric as a working feature.
+- Keep effects lightweight, accessible, and self-contained unless a dependency is justified.
+- Avoid shell interpolation and never embed credentials, prompts, or personal data.
+- Use the `belentani.eu / noiacore.com` signature only as part of this optional creative layer.
 
 ## Verification
 
-- Open `magic/shader.html` and `magic/immersive.html` in a browser - they must render.
-- Confirm the signature is present in every file.
+- Check JavaScript syntax and inspect the page at narrow and wide viewports.
+- Respect reduced-motion preferences and provide usable controls for sound.
+- Confirm the underlying application still builds and its tests pass.
+- Disclose any browser or external service behavior that was not tested.

@@ -13,14 +13,30 @@
   p{line-height:1.8;opacity:.9;}
   blockquote{border-left:2px solid rgba(168,85,247,.7);padding-left:16px;opacity:.85;font-style:italic;}
   .sig{margin-top:60px;letter-spacing:.3em;font-size:.7rem;opacity:.6;color:#7dd3fc;text-transform:uppercase;}
+  .webgl-note{border:1px solid rgba(125,211,252,.35);padding:12px;color:#c4b5fd;font-size:.85rem;}
+  #audio-status{min-height:1.4em;font-size:.75rem;letter-spacing:.03em;text-transform:none;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
   .btn{margin:4px 6px 0 0;padding:10px 18px;background:rgba(168,85,247,.15);color:#fff;border:1px solid rgba(255,255,255,.3);
     letter-spacing:.12em;font-size:.72rem;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:.25s;}
   .btn:hover{background:rgba(168,85,247,.5);}
 </style>
+
+<style id="reduced-motion-support">
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
 </head>
 <body>
-<canvas id="gl"></canvas>
+<canvas id="gl" aria-hidden="true"></canvas>
 <div class="wrap">
+  <p id="webgl-note" class="webgl-note" role="status" hidden>WebGL is unavailable in this browser. The text and sound controls remain accessible.</p>
   <h1>BELENTANI</h1>
   <p><em>the DUCK / NOIACORE universe</em></p>
   <p id="lore"></p>
@@ -30,6 +46,7 @@
   <button class="btn" data-s="chime">Chime</button>
   <button class="btn" data-s="whoosh">Whoosh</button>
   <button class="btn" data-s="power">Power</button>
+  <p id="audio-status" role="status" aria-live="polite"></p>
 
   <h2>Directions</h2>
   <blockquote>
@@ -44,11 +61,11 @@
 // ---- LORE (virtual AI instructions + world) ----
 const LORE = [
   "This repository is one node in the BELENTANI ecosystem: a creative-intelligence universe weaving art, code and sound.",
-  "Every repo carries the signature of belentani.eu (studio) and noiacore.com (core platform).",
-  "AI agents operating here follow the VIRTUAL AI INSTRUCTIONS embedded in this experience.",
+  "This optional creative layer carries the belentani.eu studio and noiacore.com core signature.",
+  "For accurate project guidance, read magic/ai-instructions.md; this page is an artistic experience.",
   "The shader you see is not decoration - it is the signature of the machine, generated live on your GPU.",
   "The sounds are not files - they are synthesized in your browser by a procedural sound forge.",
-  "Rule 1: never break the front. Rule 2: always leave the signature. Rule 3: make it feel alive."
+  "Rule 1: protect the real product. Rule 2: use the signature intentionally. Rule 3: make every effect purposeful."
 ];
 let li = 0;
 const el = document.getElementById('lore');
@@ -63,7 +80,9 @@ function typeLore(){
     else setTimeout(typeLore, 2600);
   })();
 }
-typeLore();
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reducedMotion) el.textContent = LORE[0];
+else typeLore();
 
 // ---- Shader ----
 const c = document.getElementById('gl'), gl = c.getContext('webgl');
@@ -83,9 +102,12 @@ if(gl){
   gl.linkProgram(pr);gl.useProgram(pr);
   const a=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
   const uR=gl.getUniformLocation(pr,'uR'),uT=gl.getUniformLocation(pr,'uT');
-  function rs(){c.width=innerWidth;c.height=innerHeight;gl.viewport(0,0,innerWidth,innerHeight);gl.uniform2f(uR,innerWidth,innerHeight);}
+  function draw(t){gl.uniform1f(uT,t/1000);gl.drawArrays(gl.TRIANGLES,0,3);}
+  function rs(){c.width=innerWidth;c.height=innerHeight;gl.viewport(0,0,innerWidth,innerHeight);gl.uniform2f(uR,innerWidth,innerHeight);if(reducedMotion)draw(0);}
   addEventListener('resize',rs);rs();
-  (function loop(t){gl.uniform1f(uT,t/1000);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(loop);})(0);
+  if(!reducedMotion)(function loop(t){draw(t);requestAnimationFrame(loop);})(0);
+} else {
+  document.getElementById('webgl-note').hidden = false;
 }
 
 // ---- Sound ----
@@ -104,7 +126,14 @@ const sfx={ambient(){const t=ac().currentTime;[110,165,220,275].forEach(f=>tone(
   chime(){const t=ac().currentTime;[523,659,784,1046].forEach((f,i)=>tone(f,t+i*0.08,0.9,'sine',0.18));tone(2093,t,1.2,'sine',0.06);},
   whoosh(){const t=ac().currentTime;noise(t,0.7,0.25,400);tone(120,t,0.7,'sawtooth',0.12,1400);},
   power(){const t=ac().currentTime;tone(60,t,0.5,'sawtooth',0.15,240);tone(880,t+0.35,0.6,'sine',0.12);}};
-document.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{ac();sfx[b.dataset.s]();}));
+const soundButtons = document.querySelectorAll('button[data-s]');
+const audioStatus = document.getElementById('audio-status');
+if (!AC) {
+  audioStatus.textContent = 'Web Audio is unavailable in this browser; sound controls are disabled.';
+  soundButtons.forEach((button) => { button.disabled = true; });
+} else {
+  soundButtons.forEach((button) => button.addEventListener('click', () => { ac(); sfx[button.dataset.s](); }));
+}
 </script>
 </body>
 </html>

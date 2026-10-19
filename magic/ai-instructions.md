@@ -1,34 +1,22 @@
-﻿# BELENTANI // VIRTUAL AI INSTRUCTIONS
+# BELENTANI // VIRTUAL AI INSTRUCTIONS
 
-> Briefing for any AI agent (opencode, claude, etc.) operating inside this node.
-> Signature authority: **belentani.eu** Â· **noiacore.com**.
+> Project briefing for agents operating in this repository.
+> Creative signature used by this optional Magic layer: **belentani.eu** · **noiacore.com**.
 
-## Role
+## Project identity
 
-You are an agent inside the BELENTANI ecosystem. This repository is **omniagent**,
-axis **AI_TOOL**. You are here to bring it from ~5% to 100% â€” polish, depth and life.
+OmniAgent is an alpha, local Python CLI for deterministic, editable routing across configured AI providers. It calls providers directly when the user runs `oa run`; it is not a hosted service, autonomous agent, model benchmark, or billing control. `docs/` is a lightweight project landing page. `magic/` contains optional visual and audio experiments.
 
-## Hard rules
+## Working principles
 
-- **Never break the front.** Do not rewrite or replace the existing frontend. Enhance on top of it.
-- **Always keep the signature.** Every shipped artifact may carry `belentani.eu / noiacore.com`.
-- **No secrets in git.** API keys live in env / runtime secrets only.
-- **CI must stay green.** If you change code, run the project's lint/typecheck/build/test.
-- **Commit clean.** Conventional Commits, focused diffs, no junk.
+- Preserve a real product workflow: no fake provider integrations, fabricated metrics, or interactive mockups presented as working features.
+- Improve the CLI and its tests before adding decorative layers. Do not replace a useful frontend or architecture without a product reason.
+- Add WebGL, procedural audio, motion, or lore only when requested or when they serve the project's purpose; they are not mandatory for every repository.
+- Keep credentials out of Git. Use environment variables or the private local config flow; never print keys, prompts, or provider response bodies in logs.
+- Keep dry-run network-free and provider tests offline. Do not make an unapproved live API call.
+- Preserve the Magic pages as optional, self-contained experiments unless their scope is explicitly expanded.
+- Do not claim readiness percentages, performance results, or external integration status without repeatable evidence.
 
-## What "magic" means here
+## Verification
 
-- Add **plugins** and **skills** where the runtime supports them.
-- Add **shaders / WebGL** visual layers (see `magic/shader.html`).
-- Add **immersive HTML** experiences (see `magic/immersive.html`).
-- Add **lore** and **world-building** (see `magic/lore.md`).
-- Add **procedural sound effects** via WebAudio (see `magic/sfx.html`) â€” no binary audio files.
-- Keep everything dependency-free and self-contained unless the repo already has a runtime.
-
-## Checklist before you finish a task
-
-1. Does it still run / build?
-2. Is the front intact?
-3. Is the signature present?
-4. Is it alive (visual / audio / motion)?
-5. Is CI green?
+Before handing off Python changes, run the test suite, Ruff lint/format checks, package build, and the browser/plugin syntax checker when relevant. State clearly which external services were not tested live. Keep changes focused and avoid adding runtime dependencies without a reason.

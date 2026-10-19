@@ -42,7 +42,9 @@ def test_route_with_economics_returns_provider():
         {"provider": "deepseek", "estimated_cost": 0.02, "estimated_latency_ms": 10},
     ]
 
-    assert route_with_economics(TaskType.MATH, config, candidates, objective="latency") == "deepseek"
+    assert (
+        route_with_economics(TaskType.MATH, config, candidates, objective="latency") == "deepseek"
+    )
 
 
 def test_gpu_comparisons_adapt_to_neutral_contract():
@@ -71,3 +73,43 @@ def test_balanced_objective_normalizes_cost_and_latency_scales():
     selected = ComputeEconomicsEngine().choose(candidates, objective="balanced")
 
     assert selected.provider == "balanced"
+
+
+def test_non_finite_cost_and_latency_are_rejected():
+    with pytest.raises(ValueError, match="finite"):
+        ComputeCandidate("provider", estimated_cost=float("nan"))
+    with pytest.raises(ValueError, match="finite"):
+        ComputeCandidate("provider", estimated_latency_ms=float("inf"))
+
+
+def test_budget_is_a_strict_constraint_when_no_candidate_is_affordable():
+    candidates = [
+        ComputeCandidate("one", estimated_cost=0.02),
+        ComputeCandidate("two", estimated_cost=0.05),
+    ]
+
+    with pytest.raises(ValueError, match="within the requested budget"):
+        ComputeEconomicsEngine().choose(candidates, budget=0.01)
+
+
+def test_invalid_budget_is_rejected():
+    with pytest.raises(ValueError, match="budget"):
+        ComputeEconomicsEngine().choose([ComputeCandidate("provider")], budget=float("nan"))
+
+
+def test_preferred_provider_breaks_equal_objective_ties():
+    candidates = [
+        ComputeCandidate("first", estimated_cost=0.01),
+        ComputeCandidate("preferred", estimated_cost=0.01),
+    ]
+
+    selected = ComputeEconomicsEngine().choose(
+        candidates, preferred_provider="preferred", objective="cost"
+    )
+
+    assert selected.provider == "preferred"
+
+
+def test_unknown_objective_is_rejected_even_with_one_candidate():
+    with pytest.raises(ValueError, match="unsupported objective"):
+        ComputeEconomicsEngine().choose([ComputeCandidate("provider")], objective="random")

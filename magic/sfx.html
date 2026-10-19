@@ -12,7 +12,21 @@
   button{margin:6px;padding:14px 24px;background:rgba(168,85,247,.15);color:#fff;border:1px solid rgba(255,255,255,.3);
     letter-spacing:.15em;font-size:.8rem;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:.25s;}
   button:hover{background:rgba(168,85,247,.5);box-shadow:0 0 25px rgba(168,85,247,.7);}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  #audio-status{min-height:1.4em;letter-spacing:.03em;text-transform:none;}
   .sign{margin-top:24px;color:#7dd3fc;letter-spacing:.3em;font-size:.7rem;opacity:.7;}
+</style>
+
+<style id="reduced-motion-support">
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -27,6 +41,7 @@
     <button data-s="power">Power On</button>
     <button data-s="glitch">Glitch</button>
   </div>
+  <p id="audio-status" role="status" aria-live="polite"></p>
   <div class="sign">belentani.eu &middot; noiacore.com</div>
 </div>
 <script>
@@ -58,7 +73,14 @@ const sfx = {
   power(){ const t=ac().currentTime; tone(60,t,0.5,'sawtooth',0.15,240); tone(880,t+0.35,0.6,'sine',0.12); },
   glitch(){ const t=ac().currentTime; [220,180,260,150].forEach((f,i)=>tone(f,t+i*0.05,0.05,'square',0.12)); noise(t,0.3,0.2,1500); }
 };
-document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ ac(); sfx[b.dataset.s](); }));
+const buttons = document.querySelectorAll('button[data-s]');
+const status = document.getElementById('audio-status');
+if (!AC) {
+  status.textContent = 'Web Audio is unavailable in this browser; sound controls are disabled.';
+  buttons.forEach((button) => { button.disabled = true; });
+} else {
+  buttons.forEach((button) => button.addEventListener('click', () => { ac(); sfx[button.dataset.s](); }));
+}
 </script>
 </body>
 </html>

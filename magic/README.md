@@ -1,18 +1,17 @@
 # magic/ — BELENTANI Magic Kit
 
-The signature layer for this node.
+An optional creative layer for this repository. The CLI and its provider integrations remain the product's source of truth; these self-contained pages are not required to use OmniAgent.
 
-| File | What it does |
-|------|--------------|
-| `shader.html` | WebGL animated shader (immersive background) |
-| `sfx.html` | Procedural sound effects via WebAudio (no audio files) |
-| `immersive.html` | Combined experience: shader + lore + sound + AI briefing |
-| `lore.md` | Ecosystem world-building and the Three Rules |
-| `ai-instructions.md` | Virtual AI agent briefing |
-| `skill.md` | opencode skill: apply the magic treatment |
-| `plugin.js` | opencode plugin exposing an `/immersive` command |
+| File | Purpose |
+|---|---|
+| `shader.html` | WebGL shader experiment |
+| `sfx.html` | Procedural sound-effects experiment via WebAudio |
+| `immersive.html` | Combined visual experience with the project's lore |
+| `lore.md` | Ecosystem world-building and creative principles |
+| `ai-instructions.md` | Repository briefing for AI agents |
+| `skill.md` | Optional skill for a requested creative treatment |
+| `plugin.js` | Open the local immersive page from the OpenCode plugin |
 
-Open `immersive.html` in a browser to enter the experience.
-Open `ai-instructions.md` to brief agents working in this node.
+Open `immersive.html` in a browser to view the experience. `ai-instructions.md` describes the repository and safe working principles.
 
-**Signature: belentani.eu · noiacore.com**
+**Creative signature:** belentani.eu · noiacore.com

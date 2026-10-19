@@ -1,30 +1,23 @@
-﻿# BELENTANI // LORE
+# BELENTANI // LORE
 
-> The signature of this node: **belentani.eu** (studio) Â· **noiacore.com** (core).
+> Creative signature of this optional layer: **belentani.eu** (studio) · **noiacore.com** (core).
 
 ## The Universe
 
-The BELENTANI ecosystem is a living constellation of creative-intelligence nodes.
-Each repository is a node: it carries code, art, sound and instructions, and it
-answers to the same two gates â€” **belentani.eu** and **noiacore.com**.
+The BELENTANI ecosystem is imagined as a constellation of creative and technical projects. Each node can carry code, art, sound, and its own purpose while remaining a usable product in its own right.
 
 ## The DUCK / NOIACORE thread
 
-DUCK is the creative engine â€” sound, vision, production, play.
-NOIACORE is the mind â€” multi-agent systems, automation, intelligence.
-Where a DUCK node and a NOIACORE node touch, a **ZION** node is born: a verified,
-polished, publishable instance of the ecosystem.
+DUCK is the creative engine: sound, vision, production, and play. NOIACORE is the mind: multi-agent systems, automation, and intelligence. Where a creative DUCK project and a NOIACORE system meet, a **ZION** node represents a carefully reviewed, publishable experience.
 
 ## The Three Rules
 
-1. **Never break the front.** The experience users see is sacred; enhance it, do not replace it.
-2. **Always leave the signature.** `belentani.eu` / `noiacore.com` on every node.
-3. **Make it feel alive.** Shaders, sound, motion, lore â€” the machine must breathe.
+1. **Protect the real product.** Preserve existing functionality and improve it with evidence, not decoration alone.
+2. **Keep the signature intentional.** Use `belentani.eu` / `noiacore.com` when the Magic layer is part of the delivered experience.
+3. **Make it purposeful.** Shaders, sound, motion, and lore are artistic tools—not requirements for every project.
 
 ## This node
 
-One CLI to route AI tasks to the best model
+OmniAgent is a local, rule-based CLI for routing AI tasks to configured providers. Its routing rules and provider calls are part of the real product; the `magic/` pages are optional creative experiments.
 
 Axis: **AI_TOOL**.
-
-Open `magic/immersive.html` to enter. Open `magic/ai-instructions.md` to brief the agents.

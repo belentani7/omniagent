@@ -7,10 +7,24 @@ specific accelerator catalogue or vendor SDK.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Literal
 
 Objective = Literal["cost", "latency", "balanced"]
+_VALID_OBJECTIVES = {"cost", "latency", "balanced"}
+
+
+def _finite_non_negative(value: Any, label: str) -> float:
+    if isinstance(value, bool):
+        raise ValueError(f"{label} must be a finite, non-negative number")
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError(f"{label} must be a finite, non-negative number") from None
+    if not math.isfinite(number) or number < 0:
+        raise ValueError(f"{label} must be a finite, non-negative number")
+    return number
 
 
 @dataclass(frozen=True)
@@ -25,10 +39,24 @@ class ComputeCandidate:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if self.estimated_cost < 0:
-            raise ValueError("estimated_cost must be non-negative")
-        if self.estimated_latency_ms < 0:
-            raise ValueError("estimated_latency_ms must be non-negative")
+        if not isinstance(self.provider, str) or not self.provider.strip():
+            raise ValueError("provider must be a non-empty string")
+        if not isinstance(self.model, str):
+            raise ValueError("model must be a string")
+        if not isinstance(self.available, bool):
+            raise ValueError("available must be a boolean")
+        if not isinstance(self.metadata, dict):
+            raise ValueError("metadata must be a mapping")
+        object.__setattr__(self, "provider", self.provider.strip())
+        object.__setattr__(self, "model", self.model.strip())
+        object.__setattr__(
+            self, "estimated_cost", _finite_non_negative(self.estimated_cost, "estimated_cost")
+        )
+        object.__setattr__(
+            self,
+            "estimated_latency_ms",
+            _finite_non_negative(self.estimated_latency_ms, "estimated_latency_ms"),
+        )
 
 
 class ComputeEconomicsEngine:
@@ -42,38 +70,49 @@ class ComputeEconomicsEngine:
         preferred_provider: str | None = None,
         objective: Objective = "balanced",
     ) -> ComputeCandidate:
-        options = [candidate for candidate in candidates if candidate.available]
+        if objective not in _VALID_OBJECTIVES:
+            raise ValueError(f"unsupported objective: {objective}")
         if budget is not None:
-            if budget < 0:
-                raise ValueError("budget must be non-negative")
-            affordable = [candidate for candidate in options if candidate.estimated_cost <= budget]
-            if affordable:
-                options = affordable
+            budget = _finite_non_negative(budget, "budget")
+        if preferred_provider is not None and not isinstance(preferred_provider, str):
+            raise ValueError("preferred_provider must be a string or None")
+
+        options = [candidate for candidate in candidates if candidate.available]
         if not options:
             raise ValueError("no available compute candidates")
+        if budget is not None:
+            options = [candidate for candidate in options if candidate.estimated_cost <= budget]
+            if not options:
+                raise ValueError("no available compute candidate is within the requested budget")
 
-        cost_values = [candidate.estimated_cost for candidate in options]
-        latency_values = [candidate.estimated_latency_ms for candidate in options]
-        cost_span = max(cost_values) - min(cost_values)
-        latency_span = max(latency_values) - min(latency_values)
+        cost_min = min(candidate.estimated_cost for candidate in options)
+        latency_min = min(candidate.estimated_latency_ms for candidate in options)
+        cost_span = max(candidate.estimated_cost for candidate in options) - cost_min
+        latency_span = max(candidate.estimated_latency_ms for candidate in options) - latency_min
 
         def normalized(value: float, minimum: float, span: float) -> float:
             return 0.0 if span == 0 else (value - minimum) / span
 
-        def key(candidate: ComputeCandidate) -> tuple[float, float, int]:
+        def key(candidate: ComputeCandidate) -> tuple[float, int, float, str, str]:
             if objective == "cost":
                 primary, secondary = candidate.estimated_cost, candidate.estimated_latency_ms
             elif objective == "latency":
                 primary, secondary = candidate.estimated_latency_ms, candidate.estimated_cost
-            elif objective == "balanced":
-                normalized_cost = normalized(candidate.estimated_cost, min(cost_values), cost_span)
-                normalized_latency = normalized(candidate.estimated_latency_ms, min(latency_values), latency_span)
-                primary = normalized_cost * 0.7 + normalized_latency * 0.3
-                secondary = candidate.estimated_cost
             else:
-                raise ValueError(f"unsupported objective: {objective}")
-            preference = 0 if candidate.provider == preferred_provider else 1
-            return primary, secondary, preference
+                normalized_cost = normalized(candidate.estimated_cost, cost_min, cost_span)
+                normalized_latency = normalized(
+                    candidate.estimated_latency_ms, latency_min, latency_span
+                )
+                primary = 0.7 * normalized_cost + 0.3 * normalized_latency
+                secondary = candidate.estimated_cost
+            preferred = 0 if candidate.provider == preferred_provider else 1
+            return (
+                primary,
+                preferred,
+                secondary,
+                candidate.provider.casefold(),
+                candidate.model.casefold(),
+            )
 
         return min(options, key=key)
 
@@ -81,14 +120,19 @@ class ComputeEconomicsEngine:
 def candidates_from_gpu_comparisons(comparisons: Iterable[Any]) -> list[ComputeCandidate]:
     """Adapt GPU Cost Optimizer comparison objects to the neutral contract."""
 
-    return [
-        ComputeCandidate(
-            provider="gpu",
-            model=str(comparison.gpu),
-            estimated_cost=float(comparison.estimated_cost),
-            estimated_latency_ms=float(comparison.estimated_time_seconds) * 1000,
-            available=bool(comparison.meets_vram),
-            metadata={"vram_gb": float(comparison.vram_gb), "score": float(comparison.score)},
+    candidates = []
+    for comparison in comparisons:
+        candidates.append(
+            ComputeCandidate(
+                provider="gpu",
+                model=str(comparison.gpu),
+                estimated_cost=comparison.estimated_cost,
+                estimated_latency_ms=float(comparison.estimated_time_seconds) * 1000,
+                available=bool(comparison.meets_vram),
+                metadata={
+                    "vram_gb": float(comparison.vram_gb),
+                    "score": float(comparison.score),
+                },
+            )
         )
-        for comparison in comparisons
-    ]
+    return candidates

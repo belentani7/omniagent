@@ -1,3 +1,3 @@
-"""OmniAgent — One CLI to route AI tasks to the best model."""
+"""OmniAgent — a local CLI for rule-based AI task routing."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

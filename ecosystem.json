@@ -1,1 +1,42 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","ecosystem":"BELENTANI","universe":"AI_SYSTEMS","layer":"agents","role":"orchestration","status":"active","related_repositories":["belentani7/nexus-aion-enterprise","belentani7/nexus-workforce-enterprise","belentani7/claude-skills-pack","belentani7/manus-ai-skill-pack","belentani7/meta-skill"],"contract":{"inputs":["tasks","models","skills"],"outputs":["routed execution","automation"],"integration":"BELENTANI ecosystem contract","destructive_merges":false}}
+{
+  "schema_version": "1.0",
+  "ecosystem": "BELENTANI",
+  "universe": "AI_SYSTEMS",
+  "layer": "agents",
+  "role": "local-rule-based-ai-task-router",
+  "status": "alpha",
+  "product": {
+    "package": "omniagent-cli",
+    "version": "0.2.0",
+    "entrypoint": "oa",
+    "runtime": "Python >=3.10",
+    "hosted_backend": false,
+    "routing": "deterministic, editable keyword rules",
+    "network": "direct calls to the configured provider; dry-run is network-free"
+  },
+  "capabilities": [
+    "route prompts to configured AI providers",
+    "report provider usage when returned",
+    "record local cost estimates without saving prompt or response",
+    "preview routing without a provider call"
+  ],
+  "providers": ["groq", "google", "openrouter", "deepseek", "ollama"],
+  "related_repositories": [
+    "belentani7/nexus-aion-enterprise",
+    "belentani7/nexus-workforce-enterprise",
+    "belentani7/claude-skills-pack",
+    "belentani7/manus-ai-skill-pack",
+    "belentani7/meta-skill"
+  ],
+  "contract": {
+    "inputs": ["prompt text", "local routing and provider configuration"],
+    "outputs": ["provider response", "local usage metadata"],
+    "integrations_are_explicit": true,
+    "destructive_merges": false,
+    "non_goals": [
+      "hosted service or hidden backend",
+      "model quality ranking or autonomous task execution",
+      "provider billing enforcement"
+    ]
+  }
+}

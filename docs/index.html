@@ -3,53 +3,140 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="One CLI to route AI tasks to the best model.">
+  <meta name="description" content="OmniAgent es una CLI local que enruta tareas de IA a proveedores configurados mediante reglas visibles y editables.">
   <meta name="color-scheme" content="dark">
-  <title>OmniAgent · belentani7</title>
+  <meta name="theme-color" content="#080b12">
+  <title>OmniAgent — Enrutamiento local, sin misterio</title>
   <link rel="stylesheet" href="site.css">
+
+<style id="reduced-motion-support">
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
 </head>
-<body style="--accent: #75a7ff;">
+<body style="--accent: #8db2ff;">
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
-  <header class="site-header" aria-label="Cabecera del sitio">
+  <header class="site-header">
     <a class="brand" href="https://github.com/belentani7" aria-label="Perfil de belentani7">B7<span>/</span>OPEN</a>
-    <a class="source-link" href="https://github.com/belentani7/omniagent" target="_blank" rel="noopener">Ver código <span aria-hidden="true">↗</span></a>
+    <nav class="header-links" aria-label="Enlaces del proyecto">
+      <a class="source-link" href="./ecosistema.html">Ecosistema</a>
+      <a class="source-link" href="https://github.com/belentani7/omniagent" target="_blank" rel="noopener noreferrer">
+        Código fuente <span aria-hidden="true">↗</span>
+      </a>
+    </nav>
   </header>
+
   <main id="contenido">
     <section class="hero" aria-labelledby="titulo-principal">
-      <p class="eyebrow">Enrutamiento de tareas de IA</p>
-      <h1 id="titulo-principal">OmniAgent</h1>
-      <p class="lede">CLI que detecta el tipo de tarea y la dirige al modelo más adecuado disponible.</p>
-      <div class="actions">
-        <a class="button button-primary" href="https://github.com/belentani7/omniagent" target="_blank" rel="noopener">Explorar repositorio <span aria-hidden="true">↗</span></a>
-        
-        <button class="button button-secondary" type="button" data-copy-url="https://github.com/belentani7/omniagent">Copiar enlace</button>
+      <div class="hero-copy">
+        <p class="eyebrow">CLI local · reglas abiertas · varios proveedores</p>
+        <h1 id="titulo-principal">Elige proveedor. Entiende por qué.</h1>
+        <p class="lede">
+          OmniAgent clasifica la tarea con reglas legibles, elige un proveedor configurado
+          y muestra el resultado. Sin un backend oculto ni una promesa de “mejor modelo”.
+        </p>
+        <div class="actions">
+          <a class="button button-primary" href="https://github.com/belentani7/omniagent" target="_blank" rel="noopener noreferrer">
+            Explorar el proyecto <span aria-hidden="true">↗</span>
+          </a>
+          <button class="button button-secondary" type="button" data-copy-url="https://github.com/belentani7/omniagent">
+            Copiar enlace
+          </button>
+        </div>
+        <p class="copy-status" role="status" aria-live="polite"></p>
       </div>
-      <p class="copy-status" role="status" aria-live="polite"></p>
+
+      <div class="route-card terminal-card" aria-label="Salida real de una ejecución local de OmniAgent">
+        <div class="route-card-header">
+          <span class="terminal-mark" aria-hidden="true">›_</span>
+          <span>COMANDO EJECUTADO · SIN RED</span>
+          <span class="route-label">SALIDA REAL</span>
+        </div>
+        <p class="terminal-command"><span aria-hidden="true">$</span> oa run --dry-run "translate this to Spanish"</p>
+        <pre class="terminal-output"><code>Routing Preview
+Task type       translation
+Provider        google
+Availability    not checked / not configured
+Prompt          not displayed (25 characters)
+Monthly target  not set
+
+No prompt was sent. Dry-run does not call providers or probe Ollama.</code></pre>
+        <p class="card-footnote">Capturada del CLI con la configuración inicial del repositorio; la ruta se puede cambiar.</p>
+      </div>
     </section>
-    <section class="facts" aria-label="Información del proyecto">
-      <div><span>REPOSITORIO</span><strong>omniagent</strong></div>
-      <div><span>TECNOLOGÍA</span><strong>Python</strong></div>
-      <div><span>PUBLICACIÓN</span><strong>GitHub Pages</strong></div>
+
+    <section class="facts" aria-label="Datos del proyecto">
+      <div><span>TIPO</span><strong>CLI Python local</strong></div>
+      <div><span>RUNTIME</span><strong>Python 3.10+</strong></div>
+      <div><span>REGLAS</span><strong>Inglés · español · catalán</strong></div>
+      <div><span>ESTADO</span><strong>Alpha · pruebas offline</strong></div>
     </section>
-    <section class="overview" aria-labelledby="sobre-proyecto">
-      <div class="section-heading"><p class="eyebrow">01 · CONTEXTO</p><h2 id="sobre-proyecto">Un punto de entrada claro.</h2></div>
-      <p>Esta página acompaña al repositorio como una portada pública, ligera y accesible. El código, la documentación detallada y las instrucciones de uso permanecen en el repositorio para mantener una única fuente de verdad.</p>
+
+    <section class="overview" aria-labelledby="overview-title">
+      <div class="section-heading">
+        <p class="eyebrow">01 · CONTRATO</p>
+        <h2 id="overview-title">Una ruta visible. La llamada es tuya.</h2>
+      </div>
+      <div class="overview-copy">
+        <p>
+          El clasificador es determinista y editable: no se entrena con tus prompts ni registra
+          conversaciones. <code>--dry-run</code> muestra la ruta sin enviar texto ni consultar la red.
+        </p>
+        <p>
+          Cuando ejecutas <code>oa run</code>, el prompt sí se envía al proveedor elegido. Las claves se
+          leen del entorno o de tu archivo local protegido; la página no requiere cuenta ni API.
+        </p>
+      </div>
     </section>
-    <section class="highlights" aria-labelledby="puntos-clave">
-      <div class="section-heading"><p class="eyebrow">02 · PUNTOS CLAVE</p><h2 id="puntos-clave">Qué encontrarás.</h2></div>
-      <ol>
-        <li><span>01</span><p>Una interfaz de comando</p></li>
-        <li><span>02</span><p>Enrutamiento por tipo de tarea</p></li>
-        <li><span>03</span><p>Flujo local configurable</p></li>
-      </ol>
+
+    <section class="providers" aria-labelledby="providers-title">
+      <div class="section-heading">
+        <p class="eyebrow">02 · PROVEEDORES</p>
+        <h2 id="providers-title">Cambia el destino sin cambiar el CLI.</h2>
+      </div>
+      <div class="provider-grid">
+        <article class="provider-card"><span class="provider-index">01</span><h3>Groq</h3><code>openai/gpt-oss-120b</code><p>Hosted · requiere clave</p></article>
+        <article class="provider-card"><span class="provider-index">02</span><h3>Gemini</h3><code>gemini-3.8-flash</code><p>Free tier o plan de pago</p></article>
+        <article class="provider-card"><span class="provider-index">03</span><h3>OpenRouter</h3><code>qwen/qwen3.8-27b:free</code><p>Free endpoint · limitado</p></article>
+        <article class="provider-card"><span class="provider-index">04</span><h3>DeepSeek</h3><code>deepseek-flash</code><p>Tarifa variable</p></article>
+        <article class="provider-card provider-card-local"><span class="provider-index">05</span><h3>Ollama</h3><code>qwen2.5-coder:7b</code><p>Local · sin cargo de tokens</p></article>
+      </div>
+      <p class="section-note">Los modelos son valores iniciales editables, no un ranking de calidad. Disponibilidad y tarifas cambian.</p>
     </section>
-    <section class="next" aria-labelledby="siguiente-paso">
-      <p class="eyebrow">03 · SIGUIENTE PASO</p>
-      <h2 id="siguiente-paso">Consulta la documentación y el código fuente.</h2>
-      <a class="text-link" href="https://github.com/belentani7/omniagent" target="_blank" rel="noopener">Abrir omniagent en GitHub <span aria-hidden="true">↗</span></a>
+
+    <section class="economics" aria-labelledby="economics-title">
+      <div class="economics-mark" aria-hidden="true">$</div>
+      <div>
+        <p class="eyebrow">03 · COSTE Y PRIVACIDAD</p>
+        <h2 id="economics-title">Estimaciones no son límites.</h2>
+        <p>
+          El registro local guarda proveedor, modelo y recuentos de tokens —no el prompt ni la respuesta—.
+          Las tarifas son una instantánea pública; los precios del proveedor y su panel de facturación mandan.
+          El objetivo mensual en euros es informativo: OmniAgent no bloquea llamadas ni limita el gasto.
+        </p>
+      </div>
+    </section>
+
+    <section class="next" aria-labelledby="next-title">
+      <p class="eyebrow">04 · CÓDIGO ABIERTO</p>
+      <h2 id="next-title">Lee las reglas. Ejecuta tus pruebas. Decide con tus datos.</h2>
+      <a class="text-link" href="https://github.com/belentani7/omniagent" target="_blank" rel="noopener noreferrer">
+        Abrir omniagent en GitHub <span aria-hidden="true">↗</span>
+      </a>
     </section>
   </main>
-  <footer><span>© <span id="year"></span> belentani7</span><span>Diseñado para lectura rápida y acceso abierto.</span></footer>
-  <script src="site.js"></script>
+
+  <footer>
+    <span>© <span id="year"></span> belentani7</span>
+    <span>Una portada ligera; la CLI y la documentación son la fuente de verdad.</span>
+  </footer>
+  <script src="site.js" defer></script>
 </body>
 </html>

@@ -1,16 +1,36 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.egg-info/
-dist/
-build/
 .eggs/
-*.egg
+build/
+dist/
+.coverage
+coverage/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 .venv/
 venv/
 env/
+
+# Local configuration, credentials, and runtime data
 .env
-.env.local
+.env.*
+!.env.example
 *.log
-.mypy_cache/
-.pytest_cache/
-.ruff_cache/
+*.sqlite3
+config.yaml
+usage.jsonl
+
+# Node, editor, and hosting artifacts
+node_modules/
+.next/
+.vercel/
+.DS_Store
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.swp

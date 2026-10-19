@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "omniagent-cli"
-version = "0.1.0"
-description = "One CLI to route AI tasks to the best model automatically"
+version = "0.2.0"
+description = "Local, rule-based CLI for routing AI tasks across providers"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-keywords = ["ai", "cli", "llm", "multi-model", "routing", "cost-optimization"]
+keywords = ["ai", "cli", "llm", "multi-model", "routing", "cost-estimation"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
@@ -18,19 +18,40 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "click>=8.0",
-    "rich>=13.0",
-    "httpx>=0.25",
+    "click>=8.1",
+    "rich>=13.7",
+    "httpx>=0.27",
     "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "pytest-asyncio>=0.21"]
+dev = [
+    "build>=1.2",
+    "pytest>=8.0",
+    "ruff>=0.11",
+]
 
 [project.scripts]
 oa = "omniagent.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/belentani7/omniagent"
+Repository = "https://github.com/belentani7/omniagent"
+Issues = "https://github.com/belentani7/omniagent/issues"
+
 [tool.hatch.build.targets.wheel]
 packages = ["omniagent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

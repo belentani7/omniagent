@@ -1,42 +1,40 @@
-import type { Plugin } from "opencode"
+import { spawn } from "node:child_process";
+import { basename, join, resolve } from "node:path";
 
 /**
  * BELENTANI // MAGIC PLUGIN
- * signature: belentani.eu / noiacore.com
- *
- * Adds an /immersive command that points the user to the magic layer,
- * and a session hook that keeps the signature in mind.
+ * Adds an /immersive command that opens the project's local browser experiment.
  */
-export const magic: Plugin = async ({ project, hooks }) => {
-  const repo = project.directory.split(/[\\/]/).pop() ?? "node"
+export const magic = async ({ project }) => {
+  const projectDirectory = resolve(project?.directory || process.cwd());
+  const repo = basename(projectDirectory) || "node";
 
   project.command("immersive", {
-    description: "Open the BELENTANI magic experience for this node",
+    description: "Open the local OmniAgent magic experience",
     async run() {
-      const { exec } = await import("node:child_process")
-      const { promisify } = await import("node:util")
-      const pex = promisify(exec)
-      const target = "magic/immersive.html"
-      try {
-        if (process.platform === "win32") {
-          await pex(`start "" "${target}"`)
-        } else if (process.platform === "darwin") {
-          await pex(`open "${target}"`)
-        } else {
-          await pex(`xdg-open "${target}"`)
-        }
-      } catch (e) {
-        return `Unable to open ${target}: ${String(e)}`
-      }
-      return `Immersed in ${repo}. belentani.eu / noiacore.com`
+      const target = join(projectDirectory, "magic", "immersive.html");
+      const [executable, args] = process.platform === "win32"
+        ? ["explorer.exe", [target]]
+        : process.platform === "darwin"
+          ? ["open", [target]]
+          : ["xdg-open", [target]];
+
+      return new Promise((resolveResult) => {
+        const child = spawn(executable, args, {
+          detached: true,
+          shell: false,
+          stdio: "ignore",
+        });
+        child.once("error", (error) => {
+          resolveResult(`Unable to open the local experience: ${error.message}`);
+        });
+        child.once("spawn", () => {
+          child.unref();
+          resolveResult(`Opened the local experience for ${repo}.`);
+        });
+      });
     },
-  })
+  });
 
-  hooks.notify = async (event) => {
-    if (event.type === "session.idle") {
-      // keep the signature warm
-    }
-  }
-
-  return () => {}
-}
+  return () => {};
+};

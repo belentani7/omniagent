@@ -16,6 +16,7 @@
     text-shadow:0 0 40px rgba(168,85,247,.9),0 0 90px rgba(0,212,255,.4); }
   .ui p  { margin:0; font-size:clamp(.8rem,2vw,1.2rem); letter-spacing:.25em; opacity:.85;
     color:#e9d5ff; text-transform:uppercase; }
+  .ui .webgl-note { max-width:36rem; color:#c4b5fd; font-size:.8rem; letter-spacing:.04em; text-transform:none; }
   .sign { position:fixed; bottom:18px; width:100%; text-align:center; color:#7dd3fc;
     letter-spacing:.3em; font-size:.75rem; opacity:.7; z-index:3; }
   a.cta { pointer-events:auto; color:#fff; text-decoration:none; border:1px solid rgba(255,255,255,.35);
@@ -23,11 +24,24 @@
     background:rgba(168,85,247,.15); border-radius:2px; transition:.3s; }
   a.cta:hover { background:rgba(168,85,247,.5); box-shadow:0 0 40px rgba(168,85,247,.8); }
 </style>
+
+<style id="reduced-motion-support">
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
 </head>
 <body>
-<canvas id="gl"></canvas>
+<canvas id="gl" aria-hidden="true"></canvas>
 <div class="ui">
   <h1>BELENTANI</h1>
+  <p id="webgl-note" class="webgl-note" role="status" hidden>WebGL is unavailable in this browser. The experience remains usable without the animated background.</p>
   <p>Magic Shader</p>
   <a class="cta" href="immersive.html">enter the experience</a>
 </div>
@@ -35,7 +49,8 @@
 <script>
 const canvas = document.getElementById('gl');
 const gl = canvas.getContext('webgl');
-if (!gl) { document.body.innerHTML='<div style="color:#fff;padding:40px">WebGL not available</div>'; }
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (!gl) { document.getElementById('webgl-note').hidden = false; }
 else {
   const vert = `attribute vec2 p; void main(){ gl_Position=vec4(p,0.,1.); }`;
   const frag = `
@@ -65,9 +80,10 @@ else {
   gl.linkProgram(pr); gl.useProgram(pr);
   const a=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
   const uR=gl.getUniformLocation(pr,'uR'), uT=gl.getUniformLocation(pr,'uT');
-  function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; gl.viewport(0,0,innerWidth,innerHeight); gl.uniform2f(uR,innerWidth,innerHeight); }
+  function draw(t){ gl.uniform1f(uT,t/1000); gl.drawArrays(gl.TRIANGLES,0,3); }
+  function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; gl.viewport(0,0,innerWidth,innerHeight); gl.uniform2f(uR,innerWidth,innerHeight); if(reducedMotion) draw(0); }
   addEventListener('resize',resize); resize();
-  (function loop(t){ gl.uniform1f(uT,t/1000); gl.drawArrays(gl.TRIANGLES,0,3); requestAnimationFrame(loop); })(0);
+  if(!reducedMotion)(function loop(t){ draw(t); requestAnimationFrame(loop); })(0);
 }
 </script>
 </body>

@@ -1,34 +1,34 @@
-Contributing to Belentani Project
+# Contributing to OmniAgent
 
-## Getting Started
+## Local setup
 
-1. Fork the repository and clone it locally
-2. Install dependencies: `npm install` or `pip install -r requirements.txt`
-3. Create a branch: `git checkout -b feat/feature-name`
+1. Fork or clone the repository and create a focused branch.
+2. Install the package and development tools:
+   ```bash
+   python -m pip install -e ".[dev]"
+   ```
+3. Run the checks before opening a pull request:
+   ```bash
+   python -m pytest -q
+   python -m ruff check .
+   python -m ruff format --check .
+   python -m compileall -q omniagent tests tools
+   python tools/check_web_syntax.py  # Node.js required
+   ```
 
-## Development Workflow
+## Guidelines
 
-- Run linting: `npm run lint` or `python -m ruff lint`
-- Run tests: `npm test` or `python -m pytest`
-- Build the project: `npm run build` or `pip install -e .`
+- Keep provider calls explicit; dry-run must remain network-free.
+- Never log prompts, completions, API keys, or full provider error bodies.
+- Do not describe local token estimates or the saved monthly target as a billing cap.
+- Add offline tests for new routing, provider, configuration, and cost behavior. Mock HTTP calls; CI must not need API credentials.
+- Keep user configuration writes atomic and private on POSIX systems.
+- Preserve the CLI and config compatibility where practical; document migrations when a change is not compatible.
+- Keep the landing page lightweight and accessible. Do not add a runtime dependency for static pages without a clear need.
 
-## Pull Request Process
+## Pull requests
 
-1. Commit your changes using conventional commits: `git commit -m "feat: add new feature"`
-2. Push to your fork: `git push origin feat/feature-name`
-3. Submit a Pull Request with a clear description
-4. Link any related issues: `Fixes #123`
-
-## Code Standards
-
-- Follow the project's code style (ESLint/Prettier for JS, ruff/black for Python)
-- Write tests for new functionality
-- Update documentation as needed
-- Ensure all CI checks pass before merging
-
-## Reporting Issues
-
-- Use the issue templates: `.github/ISSUE_TEMPLATE/bug_report.yml`
-- Check for existing issues first
-- Provide clear reproduction steps
-- Include environment details (OS, version, etc.)
+- Use a concise conventional commit title.
+- Explain behavioral changes and any provider/model assumptions.
+- Include test output and note any provider behavior that was not tested live.
+- Link relevant issues with `Fixes #123` when appropriate.

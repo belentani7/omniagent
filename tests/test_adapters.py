@@ -53,3 +53,23 @@ def test_search_result_to_opportunities_maps_all_leads():
 def test_revenue_adapter_rejects_unknown_stage():
     with pytest.raises(ValueError):
         lead_to_revenue_opportunity({"name": "A"}, stage="contacted")
+
+
+def test_revenue_adapter_rejects_non_finite_fee_and_missing_identity():
+    with pytest.raises(ValueError, match="monthly_fee"):
+        lead_to_revenue_opportunity({"name": "A"}, monthly_fee=float("nan"))
+    with pytest.raises(ValueError, match="at least an email"):
+        lead_to_revenue_opportunity({})
+
+
+def test_request_validation_and_evidence_do_not_repeat_search_terms():
+    request = build_lead_search_request("req-2", "  confidential niche  ", "Barcelona")
+
+    assert "confidential niche" not in request.evidence[0].detail
+    with pytest.raises(ValueError, match="limit"):
+        build_lead_search_request("req-2", "law firms", limit=True)
+
+
+def test_search_result_rejects_non_mapping_lead():
+    with pytest.raises(ValueError, match="lead must be a mapping"):
+        search_result_to_opportunities({"leads": [None]})
