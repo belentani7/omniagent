@@ -1,0 +1,96 @@
+name: Codex Autopilot (opt-in)
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: codex-autopilot-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  improve-omniagent:
+    if: vars.CODEX_AUTOPILOT_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout with no persisted write token
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require OpenAI API credentials
+        env:
+          OPENAI_KEY_CHECK: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_KEY_CHECK" ]; then
+            echo "Missing repository secret OPENAI_API_KEY." >&2
+            exit 1
+          fi
+
+      - name: Avoid duplicate unattended pull requests
+        id: queue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pending="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json headRefName --jq '[.[] | select(.headRefName | startswith("automation/codex-"))] | length')"
+          if [ "$pending" -gt 0 ]; then
+            echo "Unreviewed Codex PR exists; skip this cycle."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Python
+        if: steps.queue.outputs.proceed == 'true'
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install project checks
+        if: steps.queue.outputs.proceed == 'true'
+        run: python -m pip install -e ".[dev]"
+
+      - name: Improve one bounded task with Codex
+        if: steps.queue.outputs.proceed == 'true'
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex/AUTOPILOT_PROMPT.md
+          output-file: /tmp/codex-autopilot-summary.txt
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+
+      - name: Safety and quality gates
+        if: steps.queue.outputs.proceed == 'true'
+        run: |
+          python tools/codex_change_guard.py
+          python -m ruff check .
+          python -m ruff format --check .
+          python -m compileall -q omniagent tests tools
+          python -m pytest -q
+
+      - name: Propose a draft pull request (never merge)
+        if: steps.queue.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No improvement was made; no pull request needed."
+            exit 0
+          fi
+          branch="automation/codex-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          git switch -c "$branch"
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "chore(omniagent): Codex proposed improvement"
+          gh auth setup-git
+          git push origin "HEAD:refs/heads/$branch"
+          gh pr create --draft --base "${{ github.event.repository.default_branch }}" --head "$branch" \
+            --title "Codex proposal: OmniAgent improvement ($GITHUB_RUN_ID)" \
+            --body "Automated proposal only. This run passed the repository change guard, lint and Python tests. Review the complete diff and CI before merging. No auto-merge, publishing or deployment was performed."
