@@ -9,6 +9,7 @@ import sys
 
 MAX_FILES = 12
 MAX_CHANGED_LINES = 1200
+MAX_UNTRACKED_BYTES = 256 * 1024
 FORBIDDEN_PREFIXES = (".github/", ".git/", ".venv/", "venv/", "node_modules/")
 FORBIDDEN_EXACT = {
     "PROJECT_MASTER_PROMPT.md",
@@ -66,13 +67,28 @@ def main() -> int:
         print(f"STOP: forbidden paths: {denied}", file=sys.stderr)
         return 1
 
+    # Untracked files do not appear in git diff --numstat; bound their size separately.
+    untracked = [entry.decode("utf-8", "surrogateescape") for entry in git_bytes("ls-files", "--others", "--exclude-standard", "-z").split(b"\0") if entry]
+    for filename in untracked:
+        candidate = pathlib.Path(filename)
+        if candidate.is_symlink() or not candidate.is_file():
+            print(f"STOP: untracked path is not a regular file: {filename}", file=sys.stderr)
+            return 1
+        if candidate.stat().st_size > MAX_UNTRACKED_BYTES:
+            print(f"STOP: untracked file exceeds {MAX_UNTRACKED_BYTES} bytes: {filename}", file=sys.stderr)
+            return 1
+
     added = removed = 0
     for line in git_bytes("diff", "--numstat", "HEAD").splitlines():
         fields = line.decode("utf-8", "replace").split("\t", 2)
         if len(fields) >= 2:
             added += int(fields[0]) if fields[0].isdigit() else 0
             removed += int(fields[1]) if fields[1].isdigit() else 0
-    if added + removed > MAX_CHANGED_LINES:
+    untracked_lines = 0
+    for filename in untracked:
+        with open(filename, "rb") as stream:
+            untracked_lines += sum(chunk.count(b"\n") for chunk in iter(lambda: stream.read(65536), b""))
+    if added + removed + untracked_lines > MAX_CHANGED_LINES:
         print("STOP: diff too large for unattended PR.", file=sys.stderr)
         return 1
     print("Change guard passed. Human review still mandatory.")
