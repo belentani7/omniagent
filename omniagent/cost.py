@@ -178,6 +178,47 @@ class CostTracker:
                 entries.append(_normalize_entry(entry))
         return entries
 
+    def month_summary(self, month: str) -> dict[str, Any]:
+        """Return local estimates for one YYYY-MM month, without claiming provider billing."""
+        import re
+
+        if not isinstance(month, str) or re.fullmatch(r"\\d{4}-(?:0[1-9]|1[0-2])", month) is None:
+            raise ValueError("month must be YYYY-MM (01 through 12)")
+        entries = [
+            entry for entry in self.get_entries()
+            if str(entry.get("timestamp", "")).startswith(month + "-")
+        ]
+        known_total = 0.0
+        unknown_count = 0
+        for entry in entries:
+            amount = _non_negative_finite_float(entry.get("estimated_cost_usd"))
+            if amount is None:
+                unknown_count += 1
+            else:
+                known_total += amount
+        return {
+            "month": month,
+            "requests": len(entries),
+            "known_estimate_usd": known_total,
+            "unknown_price_requests": unknown_count,
+        }
+
+    def print_month(self, month: str) -> None:
+        """Present the current month's *known* estimates and missing-price warning."""
+        from rich.console import Console
+        from rich.table import Table
+
+        summary = self.month_summary(month)
+        table = Table(title=f"Usage estimates for {month}")
+        table.add_column("Metric")
+        table.add_column("Value")
+        table.add_row("Requests", str(summary["requests"]))
+        table.add_row("Known USD estimate", f'${summary["known_estimate_usd"]:.6f}')
+        table.add_row("Unknown-price requests", str(summary["unknown_price_requests"]))
+        console = Console()
+        console.print(table)
+        _print_estimate_disclaimer(console)
+
     def print_last(self, n: int = 10) -> None:
         from rich.console import Console
         from rich.table import Table
