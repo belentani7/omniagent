@@ -27,7 +27,8 @@ def git_bytes(*args: str) -> bytes:
 def changed_paths() -> set[str]:
     result: set[str] = set()
     for command in (
-        ("diff", "--name-only", "-z", "HEAD"),
+        # A rename must check both the deleted source and the new destination.
+        ("diff", "--name-only", "-z", "--no-renames", "HEAD"),
         ("ls-files", "--others", "--exclude-standard", "-z"),
     ):
         result.update(
@@ -67,17 +68,22 @@ def main() -> int:
         print(f"STOP: forbidden paths: {denied}", file=sys.stderr)
         return 1
 
+    # Bound tracked and untracked files alike; Git numstat omits binary size.
+    for filename in sorted(paths):
+        candidate = pathlib.Path(filename)
+        if any(part.is_symlink() for part in (candidate, *candidate.parents)):
+            print(f"STOP: symbolic link in changed path: {filename}", file=sys.stderr)
+            return 1
+        if candidate.exists():
+            if not candidate.is_file():
+                print(f"STOP: changed path is not a regular file: {filename}", file=sys.stderr)
+                return 1
+            if candidate.stat().st_size > MAX_UNTRACKED_BYTES:
+                print(f"STOP: changed file exceeds {MAX_UNTRACKED_BYTES} bytes: {filename}", file=sys.stderr)
+                return 1
+
     # Untracked files do not appear in git diff --numstat; bound their size separately.
     untracked = [entry.decode("utf-8", "surrogateescape") for entry in git_bytes("ls-files", "--others", "--exclude-standard", "-z").split(b"\0") if entry]
-    for filename in untracked:
-        candidate = pathlib.Path(filename)
-        if candidate.is_symlink() or not candidate.is_file():
-            print(f"STOP: untracked path is not a regular file: {filename}", file=sys.stderr)
-            return 1
-        if candidate.stat().st_size > MAX_UNTRACKED_BYTES:
-            print(f"STOP: untracked file exceeds {MAX_UNTRACKED_BYTES} bytes: {filename}", file=sys.stderr)
-            return 1
-
     added = removed = 0
     for line in git_bytes("diff", "--numstat", "HEAD").splitlines():
         fields = line.decode("utf-8", "replace").split("\t", 2)
