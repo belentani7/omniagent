@@ -149,11 +149,19 @@ def providers_list() -> None:
     "--last", default=10, type=click.IntRange(min=1, max=1000), help="Show last N entries"
 )
 @click.option("--summary", is_flag=True, help="Show all-time totals by provider")
-def cost(last: int, summary: bool) -> None:
+@click.option("--month", help="Show estimated usage for one YYYY-MM calendar month")
+def cost(last: int, summary: bool, month: str | None) -> None:
     """Show local USD usage estimates; they are not provider invoices."""
+    if month is not None and summary:
+        raise click.UsageError("--month and --summary cannot be combined")
     try:
         tracker = CostTracker()
-        tracker.print_summary() if summary else tracker.print_last(last)
+        if month is not None:
+            tracker.print_month(month)
+        elif summary:
+            tracker.print_summary()
+        else:
+            tracker.print_last(last)
     except (OSError, ValueError) as exc:
         raise click.ClickException(str(exc)) from None
 
