@@ -182,7 +182,7 @@ class CostTracker:
         """Return local estimates for one YYYY-MM month, without claiming provider billing."""
         import re
 
-        if not isinstance(month, str) or re.fullmatch(r"\\d{4}-(?:0[1-9]|1[0-2])", month) is None:
+        if not isinstance(month, str) or re.fullmatch(r"\d{4}-(?:0[1-9]|1[0-2])", month) is None:
             raise ValueError("month must be YYYY-MM (01 through 12)")
         entries = [
             entry for entry in self.get_entries()
