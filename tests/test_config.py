@@ -137,3 +137,32 @@ def test_user_directory_override_must_be_absolute(tmp_path, monkeypatch):
     absolute = tmp_path / "custom"
     monkeypatch.setenv("OMNIAGENT_TEST_DIR", str(absolute))
     assert config._user_directory("OMNIAGENT_TEST_DIR", fallback) == absolute
+
+
+def test_ollama_probe_requires_configured_model_not_only_http_200(monkeypatch):
+    for env_name in config.API_KEY_PROVIDERS.values():
+        monkeypatch.delenv(env_name, raising=False)
+    response = httpx.Response(200, json={"models": []})
+    with patch("httpx.get", return_value=response) as get:
+        assert config.get_available_providers(config.DEFAULT_CONFIG) == []
+    get.assert_called_once_with("http://localhost:11434/api/tags", timeout=1.5)
+
+
+def test_ollama_probe_accepts_installed_configured_model(monkeypatch):
+    for env_name in config.API_KEY_PROVIDERS.values():
+        monkeypatch.delenv(env_name, raising=False)
+    response = httpx.Response(200, json={"models": [{"name": "qwen2.5-coder:7b"}]})
+    with patch("httpx.get", return_value=response):
+        assert config.get_available_providers(config.DEFAULT_CONFIG) == ["ollama"]
+
+
+def test_ollama_probe_rejects_other_models_and_malformed_responses(monkeypatch):
+    for env_name in config.API_KEY_PROVIDERS.values():
+        monkeypatch.delenv(env_name, raising=False)
+    for response in (
+        httpx.Response(200, json={"models": [{"name": "llama3:latest"}]}),
+        httpx.Response(200, json={"models": "not-a-list"}),
+        httpx.Response(200, text="not-json"),
+    ):
+        with patch("httpx.get", return_value=response):
+            assert config.get_available_providers(config.DEFAULT_CONFIG) == []

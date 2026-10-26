@@ -114,3 +114,28 @@ def test_setup_hides_api_keys_and_never_prints_the_value(monkeypatch):
     assert result.exit_code == 0, result.output
     assert "hidden-secret" not in result.output
     assert updates == {"groq_api_key": "hidden-secret"}
+
+
+def test_forced_ollama_unavailable_explains_server_or_model(monkeypatch):
+    runner = CliRunner()
+    execute = Mock()
+    monkeypatch.setattr(cli, "load_config", lambda: deepcopy(DEFAULT_CONFIG))
+    monkeypatch.setattr(cli, "get_available_providers", lambda *args, **kwargs: [])
+    monkeypatch.setattr(cli, "execute", execute)
+
+    result = runner.invoke(cli.main, ["run", "question", "--provider", "ollama"])
+
+    assert result.exit_code != 0
+    assert "configured model missing" in result.output
+    execute.assert_not_called()
+
+
+def test_provider_list_describes_ollama_model_availability(monkeypatch):
+    runner = CliRunner()
+    monkeypatch.setattr(cli, "load_config", lambda: deepcopy(DEFAULT_CONFIG))
+    monkeypatch.setattr(cli, "get_available_providers", lambda *args, **kwargs: [])
+
+    result = runner.invoke(cli.main, ["providers-list"])
+
+    assert result.exit_code == 0, result.output
+    assert "configured model installed" in result.output

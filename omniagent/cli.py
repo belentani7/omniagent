@@ -64,14 +64,14 @@ def run(prompt: str, provider: str | None, verbose: bool, dry_run: bool) -> None
         )
 
     if not dry_run:
-        if not available:
+        if not available and provider is None:
             raise click.ClickException(
                 "No provider is available. Configure an API key, or start the local Ollama server."
             )
         if provider_name not in available:
             if provider_name == "ollama":
                 raise click.ClickException(
-                    "Ollama is not reachable; start the local server and try again."
+                    "Ollama server unreachable or configured model missing; check the server and installed models."
                 )
             env_var = API_KEY_PROVIDERS.get(provider_name, f"{provider_name.upper()}_API_KEY")
             raise click.ClickException(
@@ -135,13 +135,17 @@ def providers_list() -> None:
         if name in providers:
             status = "Available"
         elif name == "ollama":
-            status = "Local server not detected"
+            status = "Unavailable"
         else:
             status = f"Missing {API_KEY_PROVIDERS[name]}"
         table.add_row(
             name, config.get("models", {}).get(name, details["model"]), status, details["best_for"]
         )
     console.print(table)
+    if "ollama" not in providers:
+        console.print(
+            "[dim]Ollama requires a reachable server and its configured model installed.[/dim]"
+        )
 
 
 @main.command()

@@ -219,7 +219,22 @@ def get_available_providers(config: dict[str, Any], *, probe_ollama: bool = True
 
                 response = httpx.get(f"{base_url.rstrip('/')}/api/tags", timeout=1.5)
                 if response.status_code == 200:
-                    available.append("ollama")
+                    payload = response.json()
+                    models = payload.get("models") if isinstance(payload, dict) else None
+                    configured = config.get("models", {})
+                    model = (
+                        configured.get("ollama", DEFAULT_CONFIG["models"]["ollama"])
+                        if isinstance(configured, dict)
+                        else DEFAULT_CONFIG["models"]["ollama"]
+                    )
+                    if isinstance(model, str) and isinstance(models, list):
+                        requested = model if ":" in model else f"{model}:latest"
+                        if any(
+                            isinstance(item, dict)
+                            and (item.get("name") == requested or item.get("model") == requested)
+                            for item in models
+                        ):
+                            available.append("ollama")
             except (httpx.RequestError, ValueError):
                 pass
     return [provider for provider in FALLBACK_ORDER if provider in available]
