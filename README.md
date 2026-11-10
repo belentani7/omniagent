@@ -88,3 +88,7 @@ The package is a local CLI, not a hosted service. `docs/` contains the lightweig
 ## License
 
 MIT. See `LICENSE`.
+
+
+## Producto
+Véase `plataforma/OFERTA.md`, `plataforma/precios.json`, `plataforma/ONEPAGER.md`.
