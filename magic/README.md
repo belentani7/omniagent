@@ -15,3 +15,7 @@ An optional creative layer for this repository. The CLI and its provider integra
 Open `immersive.html` in a browser to view the experience. `ai-instructions.md` describes the repository and safe working principles.
 
 **Creative signature:** belentani.eu · noiacore.com
+
+
+## Producto
+Véase `plataforma/OFERTA.md`.
