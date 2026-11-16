@@ -178,7 +178,7 @@ footer {
 </head>
 <body>
   <section class="hero">
-    <div class="hero-canvas"></div>
+    <div class="hero-canvas"><canvas id="hero-canvas" aria-hidden="true"></canvas></div>
     <div class="hero-overlay" id="react-hero">
       <h1>Omniagent</h1>
       <p>Producto completo con home hero, shader WebGL animado, y stack moderno listo para producción.</p>
@@ -200,6 +200,7 @@ footer {
     </ul>
   </section>
   <footer><p>© 2026 Omniagent - Parte del ecosistema Belentani</p></footer>
+<script>
 /* Hero Shader WebGL */
 (function() {
   const canvas = document.createElement('canvas');
@@ -241,6 +242,7 @@ footer {
   function render(time) { gl.uniform1f(tl, time * 0.001); gl.uniform2f(ml, mouse.x, mouse.y); gl.drawArrays(gl.TRIANGLES, 0, 6); requestAnimationFrame(render); }
   requestAnimationFrame(render);
 })();
+</script>
 <script type="application/json" id="hero-data">
 {
   "eyebrow": "",
@@ -253,6 +255,7 @@ footer {
   "chips": []
 }
 </script>
+<script src="hero.js" defer></script>
 <script src="site-hero.js" defer></script>
 </body>
 </html>
