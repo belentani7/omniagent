@@ -179,7 +179,7 @@ footer {
 <body>
   <section class="hero">
     <div class="hero-canvas"></div>
-    <div class="hero-overlay">
+    <div class="hero-overlay" id="react-hero">
       <h1>Omniagent</h1>
       <p>Producto completo con home hero, shader WebGL animado, y stack moderno listo para producción.</p>
       <div class="hero-actions">
@@ -241,5 +241,18 @@ footer {
   function render(time) { gl.uniform1f(tl, time * 0.001); gl.uniform2f(ml, mouse.x, mouse.y); gl.drawArrays(gl.TRIANGLES, 0, 6); requestAnimationFrame(render); }
   requestAnimationFrame(render);
 })();
+<script type="application/json" id="hero-data">
+{
+  "eyebrow": "",
+  "title": "Omniagent",
+  "subtitle": "Producto completo con home hero, shader WebGL animado, y stack moderno listo para producción.",
+  "install": "",
+  "docsHref": "docs.html",
+  "repoHref": "https://github.com/belentani7/omniagent",
+  "demoHref": "",
+  "chips": []
+}
+</script>
+<script src="site-hero.js" defer></script>
 </body>
 </html>
