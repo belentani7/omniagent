@@ -211,3 +211,5 @@ footer { display: flex; justify-content: space-between; gap: 1.5rem; padding-blo
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+@media print{body{background:#fff;color:#000}a[href]::after{content:" (" attr(href) ")"}}
