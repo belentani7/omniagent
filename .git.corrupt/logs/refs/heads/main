@@ -1,0 +1,8 @@
+0000000000000000000000000000000000000000 a0fbad329fa7d127747e09aaa5a5bcb8d457ef40 belentani7 <belentani7@users.noreply.github.com> 1794330481 +0100	clone: from https://github.com/belentani7/omniagent.git
+a0fbad329fa7d127747e09aaa5a5bcb8d457ef40 8b7341c3a4ced6641810663f33c6136347a2bc0a belentani7 <belentani7@users.noreply.github.com> 1794340590 +0100	commit: ci: install + 75 tests pass (6 skipped Windows)
+8b7341c3a4ced6641810663f33c6136347a2bc0a 69fe38b040948b9d65883a8cad28289fe16cd873 belentani7 <belentani7@users.noreply.github.com> 1794408412 +0100	commit: chore: sync local changes
+69fe38b040948b9d65883a8cad28289fe16cd873 4544aa910043a5c57ca7a78c3231466bc39bd7ec Pedro Belentani <belentani7@users.noreply.github.com> 1794797416 +0100	commit: feat(web): montar el hero React en la home
+4544aa910043a5c57ca7a78c3231466bc39bd7ec f3996621b86201868b411919591dfa548755f6a0 Pedro Belentani <belentani7@users.noreply.github.com> 1794797676 +0100	commit: fix(web): sustituir el subtítulo de plantilla por la descripción real del repo
+f3996621b86201868b411919591dfa548755f6a0 90db09dcc6d24ff69ec5d3e9994334167b3d8439 Pedro Belentani <belentani7@users.noreply.github.com> 1794797972 +0100	commit: fix(web): ejecutar el shader WebGL que se servía como texto y darle destino
+90db09dcc6d24ff69ec5d3e9994334167b3d8439 4afe965ab3c379c3c284470c837ae73968cc34f9 Pedro Belentani <belentani7@users.noreply.github.com> 1794798679 +0100	commit: fix(web): un solo shader, con la paleta de la página y el canvas dimensionado
+4afe965ab3c379c3c284470c837ae73968cc34f9 7d7ecbc1ead12ac42dac83a0bbbde0112384e0b7 Pedro Belentani <belentani7@users.noreply.github.com> 1794900568 +0100	commit: chore(calidad): licencia, test de humo, README completo y limpieza de metadatos
