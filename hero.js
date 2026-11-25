@@ -160,37 +160,67 @@
       gl.uniform2f(resolutionLoc, canvas.width, canvas.height);
     }
 
-    window.addEventListener('mousemove', function (e) {
+    function onMouseMove(e) {
       mouse.x = e.clientX / window.innerWidth;
       mouse.y = 1.0 - e.clientY / window.innerHeight;
-    });
+    }
 
+    var isHidden = typeof document !== 'undefined' && document.hidden;
+    var isOutOfView = false;
+
+    function syncPaused() {
+      paused = isHidden || isOutOfView;
+    }
+
+    function onVisibilityChange() {
+      isHidden = document.hidden;
+      syncPaused();
+    }
+
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
     window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        paused = !entry.isIntersecting;
+        isOutOfView = !entry.isIntersecting;
+        syncPaused();
       });
     }, { threshold: 0.1 });
     observer.observe(canvas);
 
     resize();
 
-    function loop(t) {
-      if (!paused) {
-        time = t * speed;
-        gl.uniform1f(timeLoc, time);
-        gl.uniform2f(mouseLoc, mouse.x, mouse.y);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    var prefersReducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function renderFrame(t) {
+      time = t * speed;
+      gl.uniform1f(timeLoc, time);
+      gl.uniform2f(mouseLoc, mouse.x, mouse.y);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    if (prefersReducedMotion) {
+      renderFrame(0);
+    } else {
+      function loop(t) {
+        if (!paused) {
+          renderFrame(t);
+        }
+        raf = requestAnimationFrame(loop);
       }
       raf = requestAnimationFrame(loop);
     }
-    raf = requestAnimationFrame(loop);
 
     return {
       destroy: function () {
         if (raf) cancelAnimationFrame(raf);
         if (observer) observer.disconnect();
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('resize', resize);
+        document.removeEventListener('visibilitychange', onVisibilityChange);
         gl.deleteProgram(program);
         gl.deleteBuffer(positionBuffer);
       },
